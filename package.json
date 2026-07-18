@@ -12,7 +12,7 @@
     "@better-auth/infra": "^0.2.13",
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
-    "better-auth": "^1.6.15",
+    "better-auth": "^1.6.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",

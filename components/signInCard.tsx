@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,13 +11,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { ReactHTMLElement, useState } from "react";
+import { signIn } from "@/lib/auth-client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignInCard() {
-  const [formData,setFormData] = useState({
-    email:"",
-    password:"",
-  })
+  const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -29,28 +34,25 @@ export default function SignInCard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setErrorMessage("");
+    setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      const { email, password } = formData;
+
+      const { error } = await signIn.email({
+        email,
+        password,
       });
 
-      const data = await res.json();
-
-
-      if (res.ok) {
-        setFormData({
-          email: "",
-          password: "",
-        });
-      } else {
-        console.log("Signin failed:", data.message);
+      if (error) {
+        setErrorMessage("Invalid email or password");
+        return;
       }
-    } catch (error) {
-      console.error("Something went wrong:", error);
+
+      router.push("/");
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -89,8 +91,11 @@ export default function SignInCard() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full">
-            Sign In
+          {errorMessage && (
+            <p className="w-full text-sm text-red-500">{errorMessage}</p>
+          )}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Logging in..." : "Sign In"}
           </Button>
           <Button type="button" variant="outline" className="w-full">
             Continue with Google

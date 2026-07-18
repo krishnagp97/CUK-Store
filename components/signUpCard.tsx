@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { signUp } from "@/lib/auth-client";
 import {
   Card,
   CardContent,
@@ -12,13 +13,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignUpCard() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -29,30 +33,30 @@ export default function SignUpCard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+    setLoading(true);
 
-      const data = await res.json();
+    const { name, email, password } = formData;
+    const { data, error } = await signUp.email({
+      name,
+      email,
+      password,
+    });
 
+    setLoading(false);
 
-      if (res.ok) {
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-        });
-      } else {
-        console.log("Signup failed:", data.message);
-      }
-    } catch (error) {
-      console.error("Something went wrong:", error);
+    if (error) {
+      console.log(error);
+      return;
     }
+     
+    setFormData({
+      name:"",
+      email:"",
+      password:"",
+
+    })
+
+     router.push("/")
   };
   return (
     <Card className="w-full max-w-md">
@@ -101,8 +105,8 @@ export default function SignUpCard() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full">
-            Sign Up
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Creating Account..." : "Sign Up"}
           </Button>
           <Button type="button" variant="outline" className="w-full">
             Continue with Google
