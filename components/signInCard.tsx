@@ -50,7 +50,8 @@ export default function SignInCard() {
         return;
       }
 
-      router.push("/");
+      router.replace("/");
+      router.refresh();
     } finally {
       setLoading(false);
     }

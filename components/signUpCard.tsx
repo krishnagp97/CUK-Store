@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SignUpCard() {
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
@@ -23,17 +24,21 @@ export default function SignUpCard() {
     password: "",
   });
   const [loading, setLoading] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
+
+    setErrorMessage("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setLoading(true);
+    setErrorMessage("");
 
     const { name, email, password } = formData;
     const { data, error } = await signUp.email({
@@ -46,36 +51,43 @@ export default function SignUpCard() {
 
     if (error) {
       console.log(error);
+
+      if (error.message?.toLowerCase().includes("user already exists")) {
+        setErrorMessage("An account with this email already exists.");
+      } else {
+        setErrorMessage(error.message || "Something went wrong.");
+      }
+
       return;
     }
-     
+
     setFormData({
-      name:"",
-      email:"",
-      password:"",
+      name: "",
+      email: "",
+      password: "",
+    });
 
-    })
-
-     router.push("/")
+    router.push("/");
   };
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Sign Up </CardTitle>
+        <CardTitle>Sign Up</CardTitle>
         <CardDescription>
-          Create an account to Start buying and selling{" "}
+          Create an account to start buying and selling
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
         <CardContent>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="userName">Name</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={handleChange}
-                type="name"
+                type="text"
                 placeholder="krishna"
                 required
               />
@@ -100,11 +112,15 @@ export default function SignUpCard() {
                 onChange={handleChange}
                 placeholder="password123#"
                 required
+                minLength={8}
               />
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
+          {errorMessage && (
+            <p className="text-sm text-red-500">{errorMessage}</p>
+          )}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating Account..." : "Sign Up"}
           </Button>
@@ -117,7 +133,7 @@ export default function SignUpCard() {
               href="/sign-in"
               className="font-medium text-foreground hover:underline"
             >
-              sign In
+              Sign In
             </Link>
           </p>
         </CardFooter>

@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,63 +7,99 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id       String @id @default(cuid())
-  name     String?
-  email    String @unique
 
+model Message {
+  id             String   @id @default(cuid())
+  text           String
+  createdAt      DateTime @default(now())
 
+  senderId       String
+  conversationId String
+
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  seen Boolean @default(false)
+  @@index([conversationId])
+  @@index([senderId])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  products      Product[]
-  wishlists     Wishlist[]
+  buyerId   String
+  sellerId  String
+  productId String
+
+  buyer   User    @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller  User    @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  @@unique([buyerId, productId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([productId])
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String     @unique
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   emailVerified Boolean    @default(false)
   image         String?
-  sessions      Session[]
+  products      Product[]
+  wishlists     Wishlist[]
   accounts      Account[]
+  sessions      Session[]
+
+  buyerConversations  Conversation[] @relation("BuyerConversations")
+  sellerConversations Conversation[] @relation("SellerConversations")
+
+  messages Message[]
+  
+  deleteRequested     Boolean   @default(false)
+  deleteScheduledAt   DateTime?
 
   @@map("user")
 }
 
 model Product {
-  id          String @id @default(cuid())
+  id          String         @id @default(cuid())
   title       String
   description String
   price       Int
-
-  category String
-
-  status String @default("AVAILABLE")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  sellerId  String
-  seller    User           @relation(fields: [sellerId], references: [id])
-  wishlists Wishlist[]
-  images    ProductImage[]
+  category    String
+  status      String         @default("AVAILABLE")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  sellerId    String
+  seller      User           @relation(fields: [sellerId], references: [id])
+  images      ProductImage[]
+  wishlists   Wishlist[]
+  conversations Conversation[]
 }
 
 model ProductImage {
-  id String @id @default(cuid())
-
-  imageUrl String
-
+  id        String  @id @default(cuid())
+  imageUrl  String
+  publicId  String
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Wishlist {
-  id String @id @default(cuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  userId    String
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
@@ -72,7 +107,7 @@ model Wishlist {
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -80,7 +115,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@index([userId])
   @@map("session")
 }
@@ -90,7 +124,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -100,6 +133,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("account")
