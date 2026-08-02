@@ -67,7 +67,7 @@ export default function SignUpCard() {
       password: "",
     });
 
-    router.push("/");
+    router.push(`/verify-email?email=${encodeURIComponent(email)}`);
   };
 
   return (
