@@ -16,7 +16,7 @@ export async function POST(
 
     if (!session) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Please sign in or create an account to add items to your wishlist." },
         { status: 401 }
       );
     }

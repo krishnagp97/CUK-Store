@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Eye, Pencil, Trash2, CircleDollarSign } from "lucide-react";
 import { MyListingCardData } from "@/lib/types";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type MyListingsPageComponentProps = {
   products: MyListingCardData[];
@@ -18,6 +19,43 @@ export function MyListingsPageComponent({
   products,
 }: MyListingsPageComponentProps) {
   const router = useRouter();
+
+  async function toggleStatus(id: string, status: "AVAILABLE" | "SOLD") {
+    const confirmed = window.confirm(
+      `Mark this product as ${status.toLowerCase()}?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/products/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to update status");
+      }
+
+      router.refresh();
+      toast.success(
+        status === "SOLD"
+          ? "Product marked as sold."
+          : "Product marked as available.",
+      );
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to update product status.");
+      }
+    }
+  }
   async function deleteProduct(id: string) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this product?",
@@ -35,9 +73,10 @@ export function MyListingsPageComponent({
       }
 
       router.refresh();
+      toast.success("Product deleted successfully.");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete product");
+      toast.error("Failed to delete product.");
     }
   }
   return (
@@ -116,8 +155,7 @@ export function MyListingsPageComponent({
                             : "secondary"
                         }
                       >
-                        {product.status.charAt(0) +
-                          product.status.slice(1).toLowerCase()}
+                        {product.status === "AVAILABLE" ? "Available" : "Sold"}
                       </Badge>
                     </div>
 
@@ -139,7 +177,21 @@ export function MyListingsPageComponent({
                           Edit
                         </Button>
                       </Link>
-
+                      {product.status === "AVAILABLE" ? (
+                        <Button
+                          className="bg-green-600 text-white hover:bg-green-700"
+                          onClick={() => toggleStatus(product.id, "SOLD")}
+                        >
+                          Mark as Sold
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => toggleStatus(product.id, "AVAILABLE")}
+                        >
+                          Mark as Available
+                        </Button>
+                      )}
                       <Button
                         variant="destructive"
                         onClick={() => deleteProduct(product.id)}

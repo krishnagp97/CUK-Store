@@ -89,6 +89,11 @@ model Product {
   images      ProductImage[]
   wishlists   Wishlist[]
   conversations Conversation[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([category])
+  @@index([status, createdAt])
 }
 
 model ProductImage {

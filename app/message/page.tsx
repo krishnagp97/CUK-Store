@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default async function MessagesPage() {
   const session = await auth.api.getSession({
@@ -10,9 +11,19 @@ export default async function MessagesPage() {
   });
 
   if (!session) {
-    redirect("/login");
-  }
+    return (
+      <div className="container mx-auto flex min-h-[70vh] flex-col items-center justify-center text-center">
+        <h1 className="text-2xl font-semibold">Please sign in</h1>
+        <p className="mt-2 text-muted-foreground">
+          Login to view your messages.
+        </p>
 
+        <Button asChild className="mt-6">
+          <Link href="/sign-in">Sign In</Link>
+        </Button>
+      </div>
+    );
+  }
   const conversations = await prisma.conversation.findMany({
     where: {
       OR: [

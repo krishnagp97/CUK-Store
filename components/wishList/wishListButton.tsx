@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 type WishlistButtonProps = {
   productId: string;
@@ -12,12 +14,15 @@ export default function WishlistButton({
   productId,
   initialWishlisted = false,
 }: WishlistButtonProps) {
+  const queryClient = useQueryClient();
   const [wishlisted, setWishlisted] = useState(initialWishlisted);
   const [loading, setLoading] = useState(false);
 
-  async function toggleWishlist(
-    e: React.MouseEvent<HTMLButtonElement>
-  ) {
+  useEffect(() => {
+    setWishlisted(initialWishlisted);
+  }, [initialWishlisted]);
+
+  async function toggleWishlist(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
 
@@ -25,19 +30,33 @@ export default function WishlistButton({
 
     setLoading(true);
 
+    const newValue = !wishlisted;
+
+  
+    setWishlisted(newValue);
+
     try {
       const res = await fetch(`/api/wishlist/${productId}`, {
-        method: wishlisted ? "DELETE" : "POST",
+        method: newValue ? "POST" : "DELETE",
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error("Failed");
+       
+        setWishlisted(!newValue);
+        toast.error(data.error || "Something went wrong.");
+        return;
       }
 
-      setWishlisted(!wishlisted);
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
     } catch (error) {
+     
+      setWishlisted(!newValue);
       console.error(error);
-      alert("Something went wrong.");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }

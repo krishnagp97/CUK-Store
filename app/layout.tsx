@@ -5,6 +5,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/navbar";
 import AblyProvider from "@/components/providers/ablyProvider";
+import Providers from "./providers";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,14 +43,18 @@ export default function RootLayout({
         "font-sans",
         inter.variable,
         geistSans.variable,
-        geistMono.variable
+        geistMono.variable,
       )}
     >
       <body className="flex min-h-screen flex-col">
-        <AblyProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-        </AblyProvider>
+        <Providers>
+          <AblyProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+
+            <Toaster position="top-right" richColors closeButton />
+          </AblyProvider>
+        </Providers>
       </body>
     </html>
   );
