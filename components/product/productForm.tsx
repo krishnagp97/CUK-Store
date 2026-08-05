@@ -12,7 +12,7 @@ import {
   ProductSchema,
   ProductFormInput,
   ProductOutput,
-} from "@/lib/validators/product";
+} from "@/lib/validations/product";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +33,6 @@ type UploadedImage = {
   imageUrl: string;
   publicId: string;
 };
-
 
 export default function ProductForm() {
   const router = useRouter();

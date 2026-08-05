@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { ProductSchema } from "@/lib/validators/product";
+import { ProductSchema } from "@/lib/validations/product";
 
 export async function PATCH(
   req: NextRequest,

@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 
 export default function DeleteAccountButton() {
-    const router = useRouter();
+  const router = useRouter();
   const handleDeleteRequest = async () => {
     try {
       const res = await fetch("/api/account/delete-request", {
@@ -49,7 +49,7 @@ export default function DeleteAccountButton() {
 
           <AlertDialogDescription>
             Your account will be scheduled for deletion. You can cancel the
-            request by logging in before the deletion date.
+            request before the deletion date.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

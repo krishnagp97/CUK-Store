@@ -1,72 +1,86 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { changePasswordSchema } from "@/lib/validations/change-password";
+import type { ChangePasswordValues } from "@/lib/validations/change-password";
 
 export default function ChangePasswordForm() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const form = useForm<ChangePasswordValues>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: ChangePasswordValues) => {
+    const { error } = await authClient.changePassword({
+      currentPassword: values.currentPassword,
+      newPassword: values.newPassword,
+      revokeOtherSessions: true,
+    });
 
-    if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+    if (error) {
+      toast.error(error.message);
       return;
     }
 
-    const { data, error } = await authClient.changePassword({
-      currentPassword,
-      newPassword,
-      revokeOtherSessions: true, // optional
-    });
-
-    alert("Password updated successfully!");
-
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    toast.success("Password updated successfully!");
+    form.reset();
   };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div>
-        <Label htmlFor="current">Current Password</Label>
+        <Label htmlFor="currentPassword">Current Password</Label>
         <Input
-          id="current"
+          id="currentPassword"
           type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
+          {...form.register("currentPassword")}
         />
+        {form.formState.errors.currentPassword && (
+          <p className="mt-1 text-sm text-red-500">
+            {form.formState.errors.currentPassword.message}
+          </p>
+        )}
       </div>
 
       <div>
-        <Label htmlFor="new">New Password</Label>
+        <Label htmlFor="newPassword">New Password</Label>
         <Input
-          id="new"
+          id="newPassword"
           type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          {...form.register("newPassword")}
         />
+        {form.formState.errors.newPassword && (
+          <p className="mt-1 text-sm text-red-500">
+            {form.formState.errors.newPassword.message}
+          </p>
+        )}
       </div>
 
       <div>
-        <Label htmlFor="confirm">Confirm New Password</Label>
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
         <Input
-          id="confirm"
+          id="confirmPassword"
           type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          {...form.register("confirmPassword")}
         />
+        {form.formState.errors.confirmPassword && (
+          <p className="mt-1 text-sm text-red-500">
+            {form.formState.errors.confirmPassword.message}
+          </p>
+        )}
       </div>
 
-      <Button type="submit" className="w-full">
-        Update Password
-      </Button>
+      <Button type="submit">Update Password</Button>
     </form>
   );
 }

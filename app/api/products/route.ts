@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ProductSchema } from "@/lib/validators/product";
+import { ProductSchema } from "@/lib/validations/product";
 
 export async function GET(req: NextRequest) {
   try {
