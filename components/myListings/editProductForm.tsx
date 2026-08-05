@@ -28,6 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EditProductData } from "@/lib/types";
+import { toast } from "sonner";
+import { CATEGORIES } from "@/lib/categories";
 
 type EditProductFormProps = {
   product: EditProductData;
@@ -72,6 +74,10 @@ export default function EditProductForm({ product }: EditProductFormProps) {
       useWebWorker: true,
       fileType: file.type,
     };
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be under 10MB.");
+      return file;
+    }
 
     try {
       return await imageCompression(file, options);
@@ -86,7 +92,7 @@ export default function EditProductForm({ product }: EditProductFormProps) {
     if (!files || files.length === 0) return;
 
     if (images.length + files.length > 3) {
-      alert("Maximum 3 images allowed");
+      toast.error("Maximum 3 images are allowed.");
       e.target.value = "";
       return;
     }
@@ -107,7 +113,10 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           body: formData,
         });
 
-        if (!res.ok) throw new Error("Upload failed");
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message ?? "Upload failed");
+        }
 
         const data = await res.json();
 
@@ -126,7 +135,11 @@ export default function EditProductForm({ product }: EditProductFormProps) {
       setValue("images", updatedUploads, { shouldValidate: true });
     } catch (err) {
       console.error(err);
-      alert("Image upload failed. Please try again.");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Image upload failed. Please try again.",
+      );
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -155,7 +168,7 @@ export default function EditProductForm({ product }: EditProductFormProps) {
       setValue("images", updatedUploads, { shouldValidate: true });
     } catch (err) {
       console.error(err);
-      alert("Failed to remove image. Please try again.");
+      toast.error("Failed to remove image. Please try again.");
     } finally {
       setDeletingIndex(null);
     }
@@ -177,7 +190,9 @@ export default function EditProductForm({ product }: EditProductFormProps) {
         setSubmitError(data.message || "Failed to update product");
         return;
       }
-      router.push(`/myListings`);
+      toast.success("Product updated successfully!");
+      router.push("/myListings");
+      router.refresh();
     } catch (err) {
       console.error(err);
       setSubmitError("Something went wrong. Please try again.");
@@ -222,16 +237,11 @@ export default function EditProductForm({ product }: EditProductFormProps) {
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="electronics">Electronics</SelectItem>
-                    <SelectItem value="fashion">Fashion</SelectItem>
-                    <SelectItem value="books">Books</SelectItem>
-                    <SelectItem value="furniture">Furniture</SelectItem>
-                    <SelectItem value="sports">Sports</SelectItem>
-                    <SelectItem value="vehicles">Vehicles</SelectItem>
-                    <SelectItem value="notes">Notes</SelectItem>
-                    <SelectItem value="mobile">Mobiles</SelectItem>
-                    <SelectItem value="laptops">Laptops</SelectItem>
-                    <SelectItem value="others">Others</SelectItem>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               )}
@@ -301,7 +311,7 @@ export default function EditProductForm({ product }: EditProductFormProps) {
                   <div key={img.publicId} className="relative h-20 w-20">
                     <Image
                       src={img.imageUrl}
-                      alt={`Product image ${index + 1}`}
+                      alt={product.title}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       fill
                       className="rounded-md object-cover"
@@ -309,7 +319,9 @@ export default function EditProductForm({ product }: EditProductFormProps) {
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      disabled={deletingIndex === index}
+                      disabled={
+                        deletingIndex === index || uploading || isSubmitting
+                      }
                       className="absolute -right-2 -top-2 rounded-full bg-red-500 p-0.5 text-white disabled:opacity-50"
                     >
                       {deletingIndex === index ? (
@@ -337,7 +349,14 @@ export default function EditProductForm({ product }: EditProductFormProps) {
             disabled={isSubmitting || uploading}
             type="submit"
           >
-            {isSubmitting ? "Updating..." : "Update Product"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              "Update Product"
+            )}
           </Button>
         </CardContent>
       </form>

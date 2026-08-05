@@ -143,8 +143,9 @@ export function MyListingsPageComponent({
                       <div>
                         <h2 className="text-2xl font-bold">{product.title}</h2>
 
-                        <p className="mt-2 text-3xl font-bold text-green-600">
-                          ₹{product.price.toLocaleString()}
+                        <p className="text-2xl font-bold">
+                          ₹
+                          {new Intl.NumberFormat("en-IN").format(product.price)}
                         </p>
                       </div>
 
@@ -172,7 +173,7 @@ export function MyListingsPageComponent({
                       </Link>
 
                       <Link href={`/myListings/${product.id}/edit`}>
-                        <Button variant="secondary">
+                        <Button variant="outline">
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit
                         </Button>
@@ -186,7 +187,7 @@ export function MyListingsPageComponent({
                         </Button>
                       ) : (
                         <Button
-                          variant="outline"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
                           onClick={() => toggleStatus(product.id, "AVAILABLE")}
                         >
                           Mark as Available
