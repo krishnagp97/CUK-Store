@@ -92,12 +92,6 @@ export function MyListingsPageComponent({
           </p>
         </div>
 
-        <Link href="/sell">
-          <Button>
-            <CircleDollarSign className="mr-2 h-4 w-4" />
-            Sell Product
-          </Button>
-        </Link>
       </div>
 
       {/* Empty State */}

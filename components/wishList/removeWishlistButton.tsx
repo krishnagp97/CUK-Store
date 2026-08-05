@@ -1,9 +1,11 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   productId: string;
@@ -20,6 +22,7 @@ export default function RemoveWishlistButton({ productId }: Props) {
     e.stopPropagation();
 
     if (loading) return;
+
     setLoading(true);
 
     try {
@@ -27,24 +30,42 @@ export default function RemoveWishlistButton({ productId }: Props) {
         method: "DELETE",
       });
 
-      if (!res.ok) return;
+      if (!res.ok) {
+        throw new Error("Failed to remove from wishlist");
+      }
+
+      toast.success("Removed from wishlist");
 
       await queryClient.invalidateQueries({
         queryKey: ["products"],
       });
 
       router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <button
+    <Button
+      type="button"
+      size="icon"
+      variant="secondary"
+      disabled={loading}
       onClick={remove}
-      className=" absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-lg"
+      className="absolute right-3 top-3 z-10 rounded-full"
     >
-      <Trash2 className="h-5 w-5 text-red-500" />
-    </button>
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Trash2 className="h-4 w-4 text-red-500" />
+      )}
+    </Button>
   );
 }

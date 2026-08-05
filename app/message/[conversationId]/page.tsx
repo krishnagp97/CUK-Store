@@ -16,10 +16,69 @@ export default async function MessagePage({
   });
 
   if (!session) {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
-  // Mark unread messages as read
+  
+  const conversation = await prisma.conversation.findFirst({
+    where: {
+      id: conversationId,
+      OR: [
+        {
+          buyerId: session.user.id,
+        },
+        {
+          sellerId: session.user.id,
+        },
+      ],
+    },
+    include: {
+      messages: {
+        take: 50,
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      buyer: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      seller: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          images: {
+            take: 1,
+            select: {
+              imageUrl: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!conversation) {
+    notFound();
+  }
+
   await prisma.message.updateMany({
     where: {
       conversationId,
@@ -33,47 +92,18 @@ export default async function MessagePage({
     },
   });
 
-  const conversation = await prisma.conversation.findUnique({
-    where: {
-      id: conversationId,
-    },
-    include: {
-      messages: {
-        include: {
-          sender: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-      buyer: true,
-      seller: true,
-      product: true,
-    },
-  });
-
-  if (!conversation) {
-    notFound();
-  }
-
-  // Ensure only participants can access the chat
-  if (
-    conversation.buyerId !== session.user.id &&
-    conversation.sellerId !== session.user.id
-  ) {
-    notFound();
-  }
 
   return (
     <ChatWindow
       conversationId={conversation.id}
       initialMessages={conversation.messages}
       currentUserId={session.user.id}
+      otherUser={
+        conversation.buyerId === session.user.id
+          ? conversation.seller
+          : conversation.buyer
+      }
+      product={conversation.product}
     />
   );
 }
