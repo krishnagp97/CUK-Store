@@ -158,7 +158,7 @@ export default async function MessagesPage() {
         `}
                 >
                   {/* User Avatar */}
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 font-semibold">
                       {otherUser.name?.charAt(0).toUpperCase() ?? "U"}
                     </div>
@@ -196,7 +196,7 @@ export default async function MessagesPage() {
 
                     {/* Message preview */}
                     <div className="mt-2 flex items-center justify-between gap-2">
-                      <p className="max-w-[180px] truncate sm:max-w-[220px]">
+                      <p className="max-w-45 truncate sm:max-w-55">
                         {lastMessage
                           ? `${
                               lastMessage.senderId === session.user.id
