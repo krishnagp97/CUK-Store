@@ -44,14 +44,16 @@ export default function ChatWindow({
   product,
 }: Props) {
   const ably = useAbly();
+  const channel = ably.channels.get(`conversation:${conversationId}`);
 
   const [messages, setMessages] = useState<MessageWithSender[]>(
     [...initialMessages].sort(
       (a, b) =>
-        new Date(a.createdAt).getTime() -
-        new Date(b.createdAt).getTime(),
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     ),
   );
+  const [isOnline, setIsOnline] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -62,13 +64,8 @@ export default function ChatWindow({
     });
   }, [messages]);
 
-
   // Ably realtime messages
   useEffect(() => {
-    const channel = ably.channels.get(
-      `conversation:${conversationId}`,
-    );
-
     const listener = (message: any) => {
       const newMessage = message.data as MessageWithSender;
 
@@ -88,39 +85,87 @@ export default function ChatWindow({
     };
   }, [ably, conversationId]);
 
+  useEffect(() => {
+    const presenceListener = (msg: any) => {
+      if (msg.clientId === currentUserId) return;
+
+      if (msg.action === "enter") {
+        setIsOnline(true);
+      }
+
+      if (msg.action === "leave" || msg.action === "absent") {
+        setIsOnline(false);
+      }
+    };
+
+    const initPresence = async () => {
+      await channel.presence.enter();
+
+      const members = await channel.presence.get();
+
+      setIsOnline(members.some((member) => member.clientId !== currentUserId));
+
+      channel.presence.subscribe(presenceListener);
+    };
+
+    initPresence();
+
+    return () => {
+      channel.presence.unsubscribe(presenceListener);
+      channel.presence.leave();
+    };
+  }, [channel, currentUserId]);
+  useEffect(() => {
+    const listener = (message: any) => {
+      const data = message.data;
+
+      if (data.userId === currentUserId) return;
+
+      setIsTyping(data.typing);
+    };
+
+    channel.subscribe("typing", listener);
+
+    return () => {
+      channel.unsubscribe("typing", listener);
+    };
+  }, [channel, currentUserId]);
 
   return (
     <div className="flex h-[calc(100vh-120px)] flex-col rounded-lg border">
-
       {/* Header */}
-      <div className="flex items-center gap-3 border-b p-4">
-
+      {/* Header */}
+      <div className="relative flex items-center gap-3 border-b p-4">
         {/* User avatar */}
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold">
-          {otherUser.name
-            ? otherUser.name.charAt(0).toUpperCase()
-            : "U"}
+          {otherUser.name ? otherUser.name.charAt(0).toUpperCase() : "U"}
         </div>
-
 
         {/* User + Product */}
         <div className="min-w-0 flex-1">
-          <h2 className="font-semibold">
-            {otherUser.name ?? "User"}
-          </h2>
+          <h2 className="font-semibold">{otherUser.name ?? "User"}</h2>
 
           <p className="truncate text-sm text-muted-foreground">
             Regarding: {product.title}
           </p>
 
           <p className="text-sm font-medium">
-            ₹
-            {new Intl.NumberFormat("en-IN").format(
-              product.price,
-            )}
+            ₹{new Intl.NumberFormat("en-IN").format(product.price)}
           </p>
         </div>
 
+        {/* Center Status */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <p className="text-sm font-medium">
+            {isTyping ? (
+              <span className="text-blue-600">typing...</span>
+            ) : isOnline ? (
+              <span className="text-green-600">● Online</span>
+            ) : (
+              <span className="text-muted-foreground">Offline</span>
+            )}
+          </p>
+        </div>
 
         {/* Product image */}
         <div className="relative h-12 w-12 overflow-hidden rounded-md bg-muted">
@@ -134,50 +179,30 @@ export default function ChatWindow({
             />
           )}
         </div>
-
       </div>
-
 
       {/* Messages */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-
         {messages.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground">
             No messages yet. Start the conversation.
           </p>
         ) : (
-
           messages.map((msg) => {
-
-            const mine =
-              msg.sender.id === currentUserId;
-
+            const mine = msg.sender.id === currentUserId;
 
             return (
               <div
                 key={msg.id}
-                className={`flex ${
-                  mine
-                    ? "justify-end"
-                    : "justify-start"
-                }`}
+                className={`flex ${mine ? "justify-end" : "justify-start"}`}
               >
-
                 <div
                   className={`
                     max-w-[75%] rounded-2xl px-4 py-2
-                    ${
-                      mine
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }
+                    ${mine ? "bg-primary text-primary-foreground" : "bg-muted"}
                   `}
                 >
-
-                  <p className="text-sm">
-                    {msg.text}
-                  </p>
-
+                  <p className="text-sm">{msg.text}</p>
 
                   <p
                     className={`
@@ -189,34 +214,27 @@ export default function ChatWindow({
                       }
                     `}
                   >
-                    {new Date(
-                      msg.createdAt,
-                    ).toLocaleTimeString([], {
+                    {new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </p>
-
                 </div>
-
               </div>
             );
           })
-
         )}
 
         <div ref={bottomRef} />
-
       </div>
-
 
       {/* Input */}
       <div className="border-t p-3">
         <MessageInput
           conversationId={conversationId}
+          currentUserId={currentUserId}
         />
       </div>
-
     </div>
   );
 }
