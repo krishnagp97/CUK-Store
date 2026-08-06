@@ -36,7 +36,6 @@ type Props = {
   };
 };
 
-
 type DeliveredPayload = {
   messageId: string;
   deliveredAt: string;
@@ -58,6 +57,28 @@ function sortByCreatedAt(messages: MessageWithSender[]) {
   );
 }
 
+function formatMessageDate(date: Date | string) {
+  const messageDate = new Date(date);
+
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (isSameDay(messageDate, today)) return "Today";
+  if (isSameDay(messageDate, yesterday)) return "Yesterday";
+
+  return messageDate.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export default function ChatWindow({
   conversationId,
   initialMessages,
@@ -67,7 +88,6 @@ export default function ChatWindow({
 }: Props) {
   const ably = useAbly();
 
- 
   const channel = useMemo(
     () => ably.channels.get(`conversation:${conversationId}`),
     [ably, conversationId],
@@ -193,13 +213,11 @@ export default function ChatWindow({
 
   useEffect(() => {
     const listener = (message: any) => {
-     
       const { conversationId: eventConversationId, readAt } =
         message.data as ReadPayload;
 
       setMessages((prev) =>
         prev.map((msg) =>
-          
           msg.conversationId === eventConversationId &&
           msg.sender.id === currentUserId
             ? {
@@ -232,7 +250,6 @@ export default function ChatWindow({
     };
 
     const initPresence = async () => {
-     
       channel.presence.subscribe(presenceListener);
 
       await channel.presence.enter();
@@ -321,43 +338,59 @@ export default function ChatWindow({
             No messages yet. Start the conversation.
           </p>
         ) : (
-          messages.map((msg) => {
+          messages.map((msg, index) => {
             const mine = msg.sender.id === currentUserId;
 
-            return (
-              <div
-                key={msg.id}
-                className={`flex ${mine ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`
-                    max-w-[75%] rounded-2xl px-4 py-2
-                    ${mine ? "bg-primary text-primary-foreground" : "bg-muted"}
-                  `}
-                >
-                  <p className="text-sm">{msg.text}</p>
+            const previousMessage = index > 0 ? messages[index - 1] : null;
 
+            const showDate =
+              !previousMessage ||
+              new Date(previousMessage.createdAt).toDateString() !==
+                new Date(msg.createdAt).toDateString();
+
+            return (
+              <div key={msg.id}>
+                {showDate && (
+                  <div className="sticky top-2 z-10 my-4 flex justify-center">
+                    <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground shadow-sm">
+                      {formatMessageDate(msg.createdAt)}
+                    </span>
+                  </div>
+                )}
+
+                <div
+                  className={`flex ${mine ? "justify-end" : "justify-start"}`}
+                >
                   <div
                     className={`
+                    max-w-[75%] rounded-2xl px-4 py-2
+                    ${mine ? "bg-primary text-primary-foreground" : "bg-gray-200 dark:bg-gray-700"}
+                  `}
+                  >
+                    <p className="text-sm">{msg.text}</p>
+
+                    <div
+                      className={`
                       mt-1 flex items-center justify-end gap-1 text-[11px]
                       ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}
                     `}
-                  >
-                    <span>
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                    >
+                      <span>
+                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
 
-                    {mine &&
-                      (msg.readAt ? (
-                        <CheckCheck className="h-3 w-3 text-blue-500" />
-                      ) : msg.deliveredAt ? (
-                        <CheckCheck className="h-3 w-3 text-gray-400" />
-                      ) : (
-                        <Check className="h-3 w-3 text-gray-400" />
-                      ))}
+                      {mine &&
+                        (msg.readAt ? (
+                          <CheckCheck className="h-3 w-3 text-blue-500" />
+                        ) : msg.deliveredAt ? (
+                          <CheckCheck className="h-3 w-3 text-gray-400" />
+                        ) : (
+                          <Check className="h-3 w-3 text-gray-400" />
+                        ))}
+                    </div>
                   </div>
                 </div>
               </div>
