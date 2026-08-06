@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Prisma } from "@prisma/client";
 import { useAbly } from "ably/react";
 import Image from "next/image";
-
+import { Check, CheckCheck } from "lucide-react";
 import MessageInput from "./messageInput";
 
 type MessageWithSender = Prisma.MessageGetPayload<{
@@ -36,6 +36,28 @@ type Props = {
   };
 };
 
+
+type DeliveredPayload = {
+  messageId: string;
+  deliveredAt: string;
+};
+
+type ReadPayload = {
+  conversationId: string;
+  readAt: string;
+};
+
+type TypingPayload = {
+  userId: string;
+  typing: boolean;
+};
+
+function sortByCreatedAt(messages: MessageWithSender[]) {
+  return [...messages].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+}
+
 export default function ChatWindow({
   conversationId,
   initialMessages,
@@ -44,13 +66,15 @@ export default function ChatWindow({
   product,
 }: Props) {
   const ably = useAbly();
-  const channel = ably.channels.get(`conversation:${conversationId}`);
+
+ 
+  const channel = useMemo(
+    () => ably.channels.get(`conversation:${conversationId}`),
+    [ably, conversationId],
+  );
 
   const [messages, setMessages] = useState<MessageWithSender[]>(
-    [...initialMessages].sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    ),
+    sortByCreatedAt(initialMessages),
   );
   const [isOnline, setIsOnline] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -64,9 +88,33 @@ export default function ChatWindow({
     });
   }, [messages]);
 
+  useEffect(() => {
+    const markAsRead = async () => {
+      try {
+        const res = await fetch("/api/message/read", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            conversationId,
+          }),
+        });
+
+        if (!res.ok) {
+          console.error("Failed to mark conversation as read", res.status);
+        }
+      } catch (err) {
+        console.error("Error marking conversation as read", err);
+      }
+    };
+
+    markAsRead();
+  }, [conversationId]);
+
   // Ably realtime messages
   useEffect(() => {
-    const listener = (message: any) => {
+    const listener = async (message: any) => {
       const newMessage = message.data as MessageWithSender;
 
       setMessages((prev) => {
@@ -74,8 +122,43 @@ export default function ChatWindow({
           return prev;
         }
 
-        return [...prev, newMessage];
+        // Insert in chronological order rather than assuming messages
+        // always arrive in order.
+        return sortByCreatedAt([...prev, newMessage]);
       });
+
+      if (newMessage.sender.id !== currentUserId) {
+        try {
+          // Mark as delivered
+          const deliveredRes = await fetch(
+            `/api/message/${newMessage.id}/delivered`,
+            { method: "PATCH" },
+          );
+          if (!deliveredRes.ok) {
+            console.error(
+              "Failed to mark message as delivered",
+              deliveredRes.status,
+            );
+          }
+
+          // Since this chat is currently open,
+          // immediately mark the message as read.
+          const readRes = await fetch("/api/message/read", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              conversationId,
+            }),
+          });
+          if (!readRes.ok) {
+            console.error("Failed to mark message as read", readRes.status);
+          }
+        } catch (err) {
+          console.error("Error updating delivered/read status", err);
+        }
+      }
     };
 
     channel.subscribe("message", listener);
@@ -83,7 +166,57 @@ export default function ChatWindow({
     return () => {
       channel.unsubscribe("message", listener);
     };
-  }, [ably, conversationId]);
+  }, [channel, conversationId, currentUserId]);
+
+  useEffect(() => {
+    const listener = (message: any) => {
+      const { messageId, deliveredAt } = message.data as DeliveredPayload;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                deliveredAt: new Date(deliveredAt),
+              }
+            : msg,
+        ),
+      );
+    };
+
+    channel.subscribe("message-delivered", listener);
+
+    return () => {
+      channel.unsubscribe("message-delivered", listener);
+    };
+  }, [channel]);
+
+  useEffect(() => {
+    const listener = (message: any) => {
+     
+      const { conversationId: eventConversationId, readAt } =
+        message.data as ReadPayload;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          
+          msg.conversationId === eventConversationId &&
+          msg.sender.id === currentUserId
+            ? {
+                ...msg,
+                readAt: new Date(readAt),
+              }
+            : msg,
+        ),
+      );
+    };
+
+    channel.subscribe("message-read", listener);
+
+    return () => {
+      channel.unsubscribe("message-read", listener);
+    };
+  }, [channel, currentUserId]);
 
   useEffect(() => {
     const presenceListener = (msg: any) => {
@@ -99,13 +232,13 @@ export default function ChatWindow({
     };
 
     const initPresence = async () => {
+     
+      channel.presence.subscribe(presenceListener);
+
       await channel.presence.enter();
 
       const members = await channel.presence.get();
-
       setIsOnline(members.some((member) => member.clientId !== currentUserId));
-
-      channel.presence.subscribe(presenceListener);
     };
 
     initPresence();
@@ -115,9 +248,10 @@ export default function ChatWindow({
       channel.presence.leave();
     };
   }, [channel, currentUserId]);
+
   useEffect(() => {
     const listener = (message: any) => {
-      const data = message.data;
+      const data = message.data as TypingPayload;
 
       if (data.userId === currentUserId) return;
 
@@ -133,7 +267,6 @@ export default function ChatWindow({
 
   return (
     <div className="flex h-[calc(100vh-120px)] flex-col rounded-lg border">
-      {/* Header */}
       {/* Header */}
       <div className="relative flex items-center gap-3 border-b p-4">
         {/* User avatar */}
@@ -204,21 +337,28 @@ export default function ChatWindow({
                 >
                   <p className="text-sm">{msg.text}</p>
 
-                  <p
+                  <div
                     className={`
-                      mt-1 text-right text-[11px]
-                      ${
-                        mine
-                          ? "text-primary-foreground/70"
-                          : "text-muted-foreground"
-                      }
+                      mt-1 flex items-center justify-end gap-1 text-[11px]
+                      ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}
                     `}
                   >
-                    {new Date(msg.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                    <span>
+                      {new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+
+                    {mine &&
+                      (msg.readAt ? (
+                        <CheckCheck className="h-3 w-3 text-blue-500" />
+                      ) : msg.deliveredAt ? (
+                        <CheckCheck className="h-3 w-3 text-gray-400" />
+                      ) : (
+                        <Check className="h-3 w-3 text-gray-400" />
+                      ))}
+                  </div>
                 </div>
               </div>
             );

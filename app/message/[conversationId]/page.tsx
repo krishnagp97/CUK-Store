@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import ChatWindow from "@/components/message/chatWindow";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { ably } from "@/lib/ably";
 
 export default async function MessagePage({
   params,
@@ -19,7 +20,6 @@ export default async function MessagePage({
     redirect("/sign-in");
   }
 
-  
   const conversation = await prisma.conversation.findFirst({
     where: {
       id: conversationId,
@@ -78,20 +78,7 @@ export default async function MessagePage({
   if (!conversation) {
     notFound();
   }
-
-  await prisma.message.updateMany({
-    where: {
-      conversationId,
-      senderId: {
-        not: session.user.id,
-      },
-      isRead: false,
-    },
-    data: {
-      isRead: true,
-    },
-  });
-
+  
 
   return (
     <ChatWindow

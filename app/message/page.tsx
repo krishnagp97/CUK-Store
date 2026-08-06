@@ -93,7 +93,7 @@ export default async function MessagesPage() {
         select: {
           messages: {
             where: {
-              isRead: false,
+              readAt: null,
               senderId: {
                 not: session.user.id,
               },

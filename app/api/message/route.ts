@@ -11,19 +11,13 @@ export async function POST(req: Request) {
     });
 
     if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { conversationId, text } = await req.json();
 
     if (!conversationId || !text?.trim()) {
-      return NextResponse.json(
-        { error: "Invalid data" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
     const conversation = await prisma.conversation.findUnique({
@@ -35,7 +29,7 @@ export async function POST(req: Request) {
     if (!conversation) {
       return NextResponse.json(
         { error: "Conversation not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -43,10 +37,7 @@ export async function POST(req: Request) {
       conversation.buyerId !== session.user.id &&
       conversation.sellerId !== session.user.id
     ) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const message = await prisma.message.create({
@@ -54,6 +45,8 @@ export async function POST(req: Request) {
         text: text.trim(),
         senderId: session.user.id,
         conversationId,
+        deliveredAt: null,
+        readAt: null,
       },
       include: {
         sender: {
@@ -76,9 +69,7 @@ export async function POST(req: Request) {
     });
 
     // Publish to Ably
-    const channel = ably.channels.get(
-      `conversation:${conversationId}`
-    );
+    const channel = ably.channels.get(`conversation:${conversationId}`);
 
     await channel.publish("message", message);
 
@@ -88,7 +79,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
