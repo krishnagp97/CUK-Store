@@ -100,12 +100,78 @@ export default function ChatWindow({
   const [isTyping, setIsTyping] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const previousMessageCount = useRef(messages.length);
+  const loadingOlderRef = useRef(false);
+
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadOlderMessages = async () => {
+    if (loadingOlder || !hasMore || messages.length === 0) return;
+    const container = messagesContainerRef.current;
+
+    if (!container) return;
+
+    const previousScrollHeight = container.scrollHeight;
+
+    setLoadingOlder(true);
+    loadingOlderRef.current = true;
+
+    try {
+      const oldestMessage = messages[0];
+
+      const res = await fetch(
+        `/api/message/conversation/${conversationId}?cursor=${oldestMessage.id}`,
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to load older messages");
+      }
+
+      const data = await res.json();
+
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+
+        const olderMessages = data.messages.filter(
+          (m: MessageWithSender) => !existingIds.has(m.id),
+        );
+
+        return [...olderMessages, ...prev];
+      });
+      requestAnimationFrame(() => {
+        const container = messagesContainerRef.current;
+
+        if (!container) return;
+
+        const newScrollHeight = container.scrollHeight;
+
+        container.scrollTop += newScrollHeight - previousScrollHeight;
+      });
+      setHasMore(data.hasMore);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
 
   // Auto scroll
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    if (loadingOlderRef.current) {
+      loadingOlderRef.current = false;
+      previousMessageCount.current = messages.length;
+      return;
+    }
+
+    if (messages.length > previousMessageCount.current) {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+
+    previousMessageCount.current = messages.length;
   }, [messages]);
 
   useEffect(() => {
@@ -282,6 +348,24 @@ export default function ChatWindow({
     };
   }, [channel, currentUserId]);
 
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (container.scrollTop <= 20 && !loadingOlder && hasMore) {
+        loadOlderMessages();
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [loadingOlder, hasMore]);
+
   return (
     <div className="flex h-[calc(100vh-120px)] flex-col rounded-lg border">
       {/* Header */}
@@ -332,7 +416,10 @@ export default function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 space-y-3 overflow-y-auto p-4"
+      >
         {messages.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground">
             No messages yet. Start the conversation.

@@ -36,9 +36,9 @@ export default async function MessagePage({
     },
     include: {
       messages: {
-        take: 50,
+        take: 10,
         orderBy: {
-          createdAt: "asc",
+          createdAt: "desc",
         },
         include: {
           sender: {
