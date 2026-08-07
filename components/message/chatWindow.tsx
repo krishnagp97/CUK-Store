@@ -208,8 +208,6 @@ export default function ChatWindow({
           return prev;
         }
 
-        // Insert in chronological order rather than assuming messages
-        // always arrive in order.
         return sortByCreatedAt([...prev, newMessage]);
       });
 
@@ -218,8 +216,11 @@ export default function ChatWindow({
           // Mark as delivered
           const deliveredRes = await fetch(
             `/api/message/${newMessage.id}/delivered`,
-            { method: "PATCH" },
+            {
+              method: "PATCH",
+            },
           );
+
           if (!deliveredRes.ok) {
             console.error(
               "Failed to mark message as delivered",
@@ -227,8 +228,7 @@ export default function ChatWindow({
             );
           }
 
-          // Since this chat is currently open,
-          // immediately mark the message as read.
+          // Since this chat is open, immediately mark as read
           const readRes = await fetch("/api/message/read", {
             method: "PATCH",
             headers: {
@@ -238,6 +238,7 @@ export default function ChatWindow({
               conversationId,
             }),
           });
+
           if (!readRes.ok) {
             console.error("Failed to mark message as read", readRes.status);
           }

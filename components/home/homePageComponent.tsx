@@ -107,7 +107,7 @@ export default function HomePageComponent({ search, category }: Props) {
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="grid grid-cols-12 gap-8">
           {/* Sidebar */}
-          <aside className="col-span-3 sticky top-6 self-start">
+          <aside className="col-span-3 self-start">
             <Card className="sticky top-24 rounded-xl border shadow-none">
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold">Filters</CardTitle>

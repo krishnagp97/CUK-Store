@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar";
 import AblyProvider from "@/components/providers/ablyProvider";
 import Providers from "./providers";
 import { Toaster } from "sonner";
+import GlobalRealtime from "@/components/realtime/globalRealtime";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -50,8 +51,8 @@ export default function RootLayout({
         <Providers>
           <AblyProvider>
             <Navbar />
+            <GlobalRealtime />
             <main className="flex-1">{children}</main>
-
             <Toaster position="top-right" richColors closeButton />
           </AblyProvider>
         </Providers>
