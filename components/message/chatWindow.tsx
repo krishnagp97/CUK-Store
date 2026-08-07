@@ -106,6 +106,10 @@ export default function ChatWindow({
 
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [showUnreadDividerState, setShowUnreadDividerState] = useState(false);
+  const [unreadDividerIndex, setUnreadDividerIndex] = useState<number | null>(
+    null,
+  );
 
   const loadOlderMessages = async () => {
     if (loadingOlder || !hasMore || messages.length === 0) return;
@@ -177,6 +181,20 @@ export default function ChatWindow({
   useEffect(() => {
     const markAsRead = async () => {
       try {
+        const unreadIndex = messages.findIndex(
+          (msg) => msg.sender.id !== currentUserId && !msg.readAt,
+        );
+
+        if (unreadIndex !== -1) {
+          setUnreadDividerIndex(unreadIndex);
+          setShowUnreadDividerState(true);
+
+          setTimeout(() => {
+            setShowUnreadDividerState(false);
+            setUnreadDividerIndex(null);
+          }, 3000);
+        }
+
         const res = await fetch("/api/message/read", {
           method: "PATCH",
           headers: {
@@ -190,13 +208,25 @@ export default function ChatWindow({
         if (!res.ok) {
           console.error("Failed to mark conversation as read", res.status);
         }
+
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.sender.id !== currentUserId
+              ? {
+                  ...msg,
+                  readAt: new Date(),
+                }
+              : msg,
+          ),
+        );
       } catch (err) {
         console.error("Error marking conversation as read", err);
       }
     };
 
     markAsRead();
-  }, [conversationId]);
+ }, [conversationId, currentUserId]);
 
   // Ably realtime messages
   useEffect(() => {
@@ -367,6 +397,8 @@ export default function ChatWindow({
     };
   }, [loadingOlder, hasMore]);
 
+
+
   return (
     <div className="flex h-[calc(100vh-120px)] flex-col rounded-lg border">
       {/* Header */}
@@ -436,8 +468,22 @@ export default function ChatWindow({
               new Date(previousMessage.createdAt).toDateString() !==
                 new Date(msg.createdAt).toDateString();
 
+            const showDivider =
+              showUnreadDividerState && index === unreadDividerIndex;
+
             return (
               <div key={msg.id}>
+                {showDivider && (
+                  <div className="my-4 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-border" />
+
+                    <span className="rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white">
+                      Unread messages
+                    </span>
+
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                )}
                 {showDate && (
                   <div className="sticky top-2 z-10 my-4 flex justify-center">
                     <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground shadow-sm">
