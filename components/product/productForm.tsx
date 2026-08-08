@@ -182,22 +182,27 @@ export default function ProductForm() {
   }
 
   return (
-    <Card className="mx-auto max-w-3xl">
-      <CardHeader>
-        <CardTitle className="text-3xl">Sell Your Product</CardTitle>
-        <p className="text-muted-foreground">
+    <Card className="mx-auto max-w-3xl rounded-2xl border border-[#E5E5EF] shadow-sm">
+      <CardHeader className="px-4 pt-5 sm:px-6 sm:pt-6">
+        <CardTitle className="text-xl font-bold text-[#1A1A2E] sm:text-2xl md:text-3xl">
+          Sell Your Product
+        </CardTitle>
+        <p className="text-sm text-[#1A1A2E]/50 sm:text-base">
           Fill in the details below to list your product.
         </p>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-5 px-4 pb-6 sm:space-y-6 sm:px-6">
           {/* Product Name */}
           <div>
-            <Label htmlFor="title">Product Name</Label>
+            <Label htmlFor="title" className="text-sm font-medium text-[#1A1A2E]">
+              Product Name
+            </Label>
             <Input
               id="title"
               placeholder="e.g. iPhone 13 Pro"
+              className="mt-1.5 h-11 rounded-xl border-[#E5E5EF] focus-visible:ring-[#6C5CE7]"
               {...register("title")}
             />
             {errors.title && (
@@ -209,13 +214,13 @@ export default function ProductForm() {
 
           {/* Category */}
           <div>
-            <Label>Category</Label>
+            <Label className="text-sm font-medium text-[#1A1A2E]">Category</Label>
             <Controller
               control={control}
               name="category"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1.5 h-11 rounded-xl border-[#E5E5EF] focus:ring-[#6C5CE7]">
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -237,11 +242,14 @@ export default function ProductForm() {
 
           {/* Price */}
           <div>
-            <Label htmlFor="price">Price</Label>
+            <Label htmlFor="price" className="text-sm font-medium text-[#1A1A2E]">
+              Price
+            </Label>
             <Input
               id="price"
               type="number"
               placeholder="₹5000"
+              className="mt-1.5 h-11 rounded-xl border-[#E5E5EF] focus-visible:ring-[#6C5CE7]"
               {...register("price")}
             />
             {errors.price && (
@@ -253,11 +261,14 @@ export default function ProductForm() {
 
           {/* Description */}
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-sm font-medium text-[#1A1A2E]">
+              Description
+            </Label>
             <Textarea
               id="description"
               rows={6}
               placeholder="Describe your product..."
+              className="mt-1.5 rounded-xl border-[#E5E5EF] focus-visible:ring-[#6C5CE7]"
               {...register("description")}
             />
             {errors.description && (
@@ -269,7 +280,9 @@ export default function ProductForm() {
 
           {/* Images */}
           <div>
-            <Label htmlFor="images">Images (up to 3)</Label>
+            <Label htmlFor="images" className="text-sm font-medium text-[#1A1A2E]">
+              Images (up to 3)
+            </Label>
 
             <Input
               id="images"
@@ -278,36 +291,37 @@ export default function ProductForm() {
               multiple
               disabled={uploading || images.length >= 3}
               onChange={handleFileChange}
+              className="mt-1.5 h-11 rounded-xl border-[#E5E5EF] file:mr-3 file:rounded-full file:border-0 file:bg-[#6C5CE7]/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#6C5CE7]"
             />
 
             {uploading && (
-              <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
+              <p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#1A1A2E]/50">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#6C5CE7]" />
                 Uploading...
               </p>
             )}
 
             {uploadedImages.length > 0 && (
-              <div className="mt-3 flex gap-3">
+              <div className="mt-3 flex flex-wrap gap-3">
                 {uploadedImages.map((img, index) => (
-                  <div key={img.publicId} className="relative h-20 w-20">
+                  <div key={img.publicId} className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
                     <Image
                       src={img.imageUrl}
                       alt={`Product image ${index + 1}`}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       fill
-                      className="rounded-md object-cover"
+                      className="rounded-xl object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
                       disabled={deletingIndex === index}
-                      className="absolute -right-2 -top-2 rounded-full bg-red-500 p-0.5 text-white disabled:opacity-50"
+                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#1A1A2E] text-white shadow-sm disabled:opacity-50"
                     >
                       {deletingIndex === index ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
-                        <X className="h-3 w-3" />
+                        <X className="h-3.5 w-3.5" />
                       )}
                     </button>
                   </div>
@@ -322,10 +336,14 @@ export default function ProductForm() {
             )}
           </div>
 
-          {submitError && <p className="text-sm text-red-500">{submitError}</p>}
+          {submitError && (
+            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-500">
+              {submitError}
+            </p>
+          )}
 
           <Button
-            className="w-full"
+            className="h-12 w-full rounded-full bg-[#1A1A2E] text-sm font-medium hover:bg-[#1A1A2E]/90 sm:h-11"
             disabled={isSubmitting || uploading}
             type="submit"
           >

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export default function MessageSellerButton({
@@ -48,9 +48,13 @@ export default function MessageSellerButton({
       onClick={handleMessageSeller}
       disabled={loading}
       size="lg"
-      className="flex-1"
+      className="h-12 flex-1 rounded-full bg-[#6C5CE7] text-sm font-medium hover:bg-[#6C5CE7]/90 sm:h-11 sm:text-base"
     >
-      <MessageCircle className="mr-2 h-5 w-5" />
+      {loading ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin sm:h-5 sm:w-5" />
+      ) : (
+        <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+      )}
 
       {loading ? "Opening..." : "Chat Seller"}
     </Button>

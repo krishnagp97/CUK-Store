@@ -15,9 +15,9 @@ export default function ProductGallery({
   const [selected, setSelected] = useState(0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Main Image */}
-      <div className="relative aspect-square overflow-hidden rounded-2xl border bg-muted">
+      <div className="relative aspect-square overflow-hidden rounded-xl border border-[#E5E5EF] bg-[#F7F7FB] sm:rounded-2xl">
         <Image
           src={images[selected]?.imageUrl || "/placeholder.jpg"}
           alt="Product"
@@ -29,16 +29,16 @@ export default function ProductGallery({
       </div>
 
       {/* Thumbnails */}
-      <div className="flex gap-3 overflow-x-auto">
+      <div className="flex gap-2 overflow-x-auto pb-1 sm:gap-3">
         {images.map((image, index) => (
           <button
             key={index}
             type="button"
             onClick={() => setSelected(index)}
-            className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition ${
+            className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-20 sm:w-20 ${
               selected === index
-                ? "border-primary"
-                : "border-transparent hover:border-gray-300"
+                ? "border-[#6C5CE7]"
+                : "border-transparent hover:border-[#E5E5EF]"
             }`}
           >
             <Image
