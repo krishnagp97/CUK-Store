@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -15,10 +15,25 @@ export default function VerifyEmailPage() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [cooldown, setCooldown] = useState(60);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   async function resendVerification() {
     if (!email) {
       setMessage("Email not found");
+      return;
+    }
+
+    if (cooldown > 0 || loading) {
       return;
     }
 
@@ -28,7 +43,7 @@ export default function VerifyEmailPage() {
 
       const { error } = await authClient.sendVerificationEmail({
         email,
-        callbackURL: "/login",
+        callbackURL: "/sign-in",
       });
 
       if (error) {
@@ -37,6 +52,7 @@ export default function VerifyEmailPage() {
       }
 
       setMessage("Verification email sent. Please check your inbox.");
+      setCooldown(60);
     } catch (error) {
       console.error(error);
       setMessage("Something went wrong");
@@ -66,9 +82,13 @@ export default function VerifyEmailPage() {
         <Button
           className="mt-6 w-full"
           onClick={resendVerification}
-          disabled={loading}
+          disabled={loading || cooldown > 0}
         >
-          {loading ? "Sending..." : "Resend Verification Email"}
+          {loading
+            ? "Sending..."
+            : cooldown > 0
+              ? `Resend available in ${cooldown}s`
+              : "Resend Verification Email"}
         </Button>
 
         {message && <p className="mt-4 text-sm">{message}</p>}
