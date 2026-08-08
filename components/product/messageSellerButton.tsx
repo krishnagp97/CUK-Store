@@ -48,7 +48,7 @@ export default function MessageSellerButton({
       onClick={handleMessageSeller}
       disabled={loading}
       size="lg"
-      className="h-12 flex-1 rounded-full bg-[#6C5CE7] text-sm font-medium hover:bg-[#6C5CE7]/90 sm:h-11 sm:text-base"
+      className="h-12 flex-1 rounded-full bg-linear-to-r from-[#6C5CE7] to-[#8B7CF6] text-sm font-medium text-white shadow-md shadow-[#6C5CE7]/30 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-[#6C5CE7]/40 active:scale-[0.98] disabled:opacity-70 disabled:hover:scale-100 sm:h-11 sm:text-base"
     >
       {loading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin sm:h-5 sm:w-5" />

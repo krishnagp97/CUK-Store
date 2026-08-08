@@ -104,17 +104,17 @@ export default function HomePageComponent({ search, category }: Props) {
   }
   return (
     <div className="min-h-screen bg-[#F7F7FB]">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
           {/* Sidebar */}
           <aside className="lg:col-span-3 self-start">
-            <Card className="lg:sticky lg:top-24 rounded-2xl border border-[#E5E5EF] shadow-sm">
+            <Card className="rounded-2xl border border-[#E5E5EF] shadow-sm transition-shadow duration-300 hover:shadow-md lg:sticky lg:top-24">
               <CardHeader className="pb-4">
-                <CardTitle className="text-2xl font-bold text-[#1A1A2E]">Filters</CardTitle>
+                <CardTitle className="text-xl font-bold text-[#1A1A2E] sm:text-2xl">Filters</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="mb-4 text-lg font-semibold text-[#1A1A2E]">Categories</h3>
+                  <h3 className="mb-4 text-base font-semibold text-[#1A1A2E] sm:text-lg">Categories</h3>
                   <SidebarFilter />
                 </div>
               </CardContent>
@@ -123,9 +123,9 @@ export default function HomePageComponent({ search, category }: Props) {
 
           {/* Products */}
           <main className="lg:col-span-9">
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-6 flex items-center justify-between sm:mb-8">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A2E]">Browse Products</h1>
+                <h1 className="text-2xl font-extrabold tracking-tight text-[#1A1A2E] sm:text-3xl">Browse Products</h1>
                 <p className="mt-1 text-sm text-[#1A1A2E]/50">
                   Buy and sell items within your campus.
                 </p>
@@ -133,20 +133,22 @@ export default function HomePageComponent({ search, category }: Props) {
             </div>
 
             {products.length === 0 ? (
-              <div className="flex h-96 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5E5EF]">
-                <ShoppingBag className="mb-4 h-14 w-14 text-[#6C5CE7]/40" />
-                <h2 className="text-2xl font-semibold text-[#1A1A2E]">No Products Found</h2>
-                <p className="mt-2 text-[#1A1A2E]/50">
+              <div className="flex h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5E5EF] px-4 text-center sm:h-96">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#6C5CE7]/10">
+                  <ShoppingBag className="h-7 w-7 text-[#6C5CE7]" />
+                </div>
+                <h2 className="text-xl font-semibold text-[#1A1A2E] sm:text-2xl">No Products Found</h2>
+                <p className="mt-2 text-sm text-[#1A1A2E]/50 sm:text-base">
                   Be the first to sell something on Campus Marketplace.
                 </p>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
                   {products.map((product) => (
                     <Link href={`/products/${product.id}`} key={product.id}>
-                      <Card className="group overflow-hidden rounded-2xl border-0 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-[#6C5CE7]/10">
-                        <div className="relative h-60 overflow-hidden bg-[#F7F7FB]">
+                      <Card className="group overflow-hidden rounded-2xl border-0 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#6C5CE7]/15">
+                        <div className="relative h-52 overflow-hidden bg-[#F7F7FB] sm:h-60">
                           <Image
                             src={
                               product.images[0]?.imageUrl || "/placeholder.jpg"
@@ -154,16 +156,16 @@ export default function HomePageComponent({ search, category }: Props) {
                             alt={product.title}
                             fill
                             sizes="(max-width:768px) 100vw, (max-width:1200px) 50vw,33vw"
-                            className="object-cover transition duration-300 group-hover:scale-105"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                           />
-                          <div className="absolute right-4 top-4">
+                          <div className="absolute right-3 top-3 sm:right-4 sm:top-4">
                             <WishListButton
                               productId={product.id}
                               initialWishlisted={product.isWishlisted}
                             />
                           </div>
                         </div>
-                        <CardContent className="space-y-3 p-5">
+                        <CardContent className="space-y-2.5 p-4 sm:space-y-3 sm:p-5">
                           <span className="inline-block rounded-full bg-[#6C5CE7]/10 px-2.5 py-1 text-xs font-semibold text-[#6C5CE7]">
                             {product.category.charAt(0).toUpperCase() +
                               product.category.slice(1)}
@@ -171,7 +173,7 @@ export default function HomePageComponent({ search, category }: Props) {
                           <h2 className="line-clamp-2 text-base font-semibold text-[#1A1A2E]">
                             {product.title}
                           </h2>
-                          <p className="text-2xl font-bold text-[#1A1A2E]">
+                          <p className="text-xl font-bold text-[#1A1A2E] sm:text-2xl">
                             ₹
                             {new Intl.NumberFormat("en-IN").format(
                               product.price,
@@ -180,7 +182,10 @@ export default function HomePageComponent({ search, category }: Props) {
                           <p className="text-sm text-[#1A1A2E]/50">
                             Seller • {product.seller.name ?? "Unknown"}
                           </p>
-                          <Button variant="outline" className="w-full rounded-full border-[#E5E5EF] hover:border-[#6C5CE7] hover:bg-[#6C5CE7]/5 hover:text-[#6C5CE7]">
+                          <Button
+                            variant="outline"
+                            className="h-11 w-full rounded-full border-[#E5E5EF] text-sm font-medium transition-all duration-200 hover:border-[#6C5CE7] hover:bg-[#6C5CE7]/5 hover:text-[#6C5CE7] active:scale-[0.98] sm:h-10"
+                          >
                             <ShoppingBag className="mr-2 h-4 w-4" />
                             View Product
                           </Button>
@@ -193,13 +198,13 @@ export default function HomePageComponent({ search, category }: Props) {
                 <div ref={loadMoreRef} className="h-10" />
 
                 {isFetchingNextPage && (
-                  <div className="py-6 text-center text-[#1A1A2E]/50">
+                  <div className="py-6 text-center text-sm text-[#1A1A2E]/50">
                     Loading more products...
                   </div>
                 )}
 
                 {!hasNextPage && (
-                  <div className="py-6 text-center text-[#1A1A2E]/50">
+                  <div className="py-6 text-center text-sm text-[#1A1A2E]/50">
                     No more products to show.
                   </div>
                 )}

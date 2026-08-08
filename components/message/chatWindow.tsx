@@ -209,7 +209,6 @@ export default function ChatWindow({
           console.error("Failed to mark conversation as read", res.status);
         }
 
-
         setMessages((prev) =>
           prev.map((msg) =>
             msg.sender.id !== currentUserId
@@ -226,7 +225,7 @@ export default function ChatWindow({
     };
 
     markAsRead();
- }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId]);
 
   // Ably realtime messages
   useEffect(() => {
@@ -397,45 +396,45 @@ export default function ChatWindow({
     };
   }, [loadingOlder, hasMore]);
 
-
-
   return (
-    <div className="flex h-[calc(100vh-120px)] flex-col rounded-lg border">
+    <div className="flex h-[calc(100vh-120px)] flex-col overflow-hidden rounded-2xl border border-[#E5E5EF] bg-white">
       {/* Header */}
-      <div className="relative flex items-center gap-3 border-b p-4">
+      <div className="relative flex items-center gap-2.5 border-b border-[#E5E5EF] p-3 sm:gap-3 sm:p-4">
         {/* User avatar */}
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#6C5CE7]/10 font-semibold text-[#6C5CE7] sm:h-10 sm:w-10">
           {otherUser.name ? otherUser.name.charAt(0).toUpperCase() : "U"}
         </div>
 
         {/* User + Product */}
         <div className="min-w-0 flex-1">
-          <h2 className="font-semibold">{otherUser.name ?? "User"}</h2>
+          <h2 className="truncate font-semibold text-[#1A1A2E]">
+            {otherUser.name ?? "User"}
+          </h2>
 
-          <p className="truncate text-sm text-muted-foreground">
+          <p className="truncate text-xs text-[#1A1A2E]/50 sm:text-sm">
             Regarding: {product.title}
           </p>
 
-          <p className="text-sm font-medium">
+          <p className="text-xs font-medium text-[#1A1A2E] sm:text-sm">
             ₹{new Intl.NumberFormat("en-IN").format(product.price)}
           </p>
         </div>
 
         {/* Center Status */}
-        <div className="absolute left-1/2 -translate-x-1/2">
+        <div className="absolute left-1/2 top-3 hidden -translate-x-1/2 sm:block">
           <p className="text-sm font-medium">
             {isTyping ? (
-              <span className="text-blue-600">typing...</span>
+              <span className="text-[#6C5CE7]">typing...</span>
             ) : isOnline ? (
               <span className="text-green-600">● Online</span>
             ) : (
-              <span className="text-muted-foreground">Offline</span>
+              <span className="text-[#1A1A2E]/40">Offline</span>
             )}
           </p>
         </div>
 
         {/* Product image */}
-        <div className="relative h-12 w-12 overflow-hidden rounded-md bg-muted">
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-[#F7F7FB] sm:h-12 sm:w-12">
           {product.images[0] && (
             <Image
               src={product.images[0].imageUrl}
@@ -448,13 +447,26 @@ export default function ChatWindow({
         </div>
       </div>
 
+      {/* Mobile-only status row, since center status is hidden on small screens */}
+      <div className="border-b border-[#E5E5EF] px-3 py-1.5 sm:hidden">
+        <p className="text-xs font-medium">
+          {isTyping ? (
+            <span className="text-[#6C5CE7]">typing...</span>
+          ) : isOnline ? (
+            <span className="text-green-600">● Online</span>
+          ) : (
+            <span className="text-[#1A1A2E]/40">Offline</span>
+          )}
+        </p>
+      </div>
+
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 space-y-3 overflow-y-auto p-4"
+        className="flex-1 space-y-2.5 overflow-y-auto bg-[#F7F7FB] p-3 sm:space-y-3 sm:p-4"
       >
         {messages.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-[#1A1A2E]/50">
             No messages yet. Start the conversation.
           </p>
         ) : (
@@ -475,18 +487,18 @@ export default function ChatWindow({
               <div key={msg.id}>
                 {showDivider && (
                   <div className="my-4 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-border" />
+                    <div className="h-px flex-1 bg-[#E5E5EF]" />
 
-                    <span className="rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white">
+                    <span className="rounded-full bg-[#6C5CE7] px-3 py-1 text-xs font-medium text-white shadow-sm shadow-[#6C5CE7]/30">
                       Unread messages
                     </span>
 
-                    <div className="h-px flex-1 bg-border" />
+                    <div className="h-px flex-1 bg-[#E5E5EF]" />
                   </div>
                 )}
                 {showDate && (
                   <div className="sticky top-2 z-10 my-4 flex justify-center">
-                    <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground shadow-sm">
+                    <span className="rounded-full bg-white px-3 py-1 text-xs text-[#1A1A2E]/50 shadow-sm">
                       {formatMessageDate(msg.createdAt)}
                     </span>
                   </div>
@@ -497,8 +509,8 @@ export default function ChatWindow({
                 >
                   <div
                     className={`
-                    max-w-[75%] rounded-2xl px-4 py-2
-                    ${mine ? "bg-primary text-primary-foreground" : "bg-gray-200 dark:bg-gray-700"}
+                    max-w-[80%] rounded-2xl px-3.5 py-2 sm:max-w-[75%] sm:px-4
+                    ${mine ? "bg-linear-to-br from-[#6C5CE7] to-[#8B7CF6] text-white" : "bg-white text-[#1A1A2E] shadow-sm"}
                   `}
                   >
                     <p className="text-sm">{msg.text}</p>
@@ -506,7 +518,7 @@ export default function ChatWindow({
                     <div
                       className={`
                       mt-1 flex items-center justify-end gap-1 text-[11px]
-                      ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}
+                      ${mine ? "text-white/70" : "text-[#1A1A2E]/40"}
                     `}
                     >
                       <span>
@@ -518,11 +530,11 @@ export default function ChatWindow({
 
                       {mine &&
                         (msg.readAt ? (
-                          <CheckCheck className="h-3 w-3 text-blue-500" />
+                          <CheckCheck className="h-3 w-3 text-white" />
                         ) : msg.deliveredAt ? (
-                          <CheckCheck className="h-3 w-3 text-gray-400" />
+                          <CheckCheck className="h-3 w-3 text-white/60" />
                         ) : (
-                          <Check className="h-3 w-3 text-gray-400" />
+                          <Check className="h-3 w-3 text-white/60" />
                         ))}
                     </div>
                   </div>
@@ -532,16 +544,14 @@ export default function ChatWindow({
           })
         )}
 
-        <div ref={bottomRef} />
+        <div ref={bottomRef} className="h-1 scroll-mb-4" />
       </div>
 
       {/* Input */}
-      <div className="border-t p-3">
-        <MessageInput
-          conversationId={conversationId}
-          currentUserId={currentUserId}
-        />
-      </div>
+      <MessageInput
+        conversationId={conversationId}
+        currentUserId={currentUserId}
+      />
     </div>
   );
 }
