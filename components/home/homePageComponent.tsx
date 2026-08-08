@@ -97,24 +97,24 @@ export default function HomePageComponent({ search, category }: Props) {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
+      <div className="flex h-96 items-center justify-center text-[#1A1A2E]/50">
         Loading products...
       </div>
     );
   }
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100">
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="grid grid-cols-12 gap-8">
+    <div className="min-h-screen bg-[#F7F7FB]">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
           {/* Sidebar */}
-          <aside className="col-span-3 self-start">
-            <Card className="sticky top-24 rounded-xl border shadow-none">
+          <aside className="lg:col-span-3 self-start">
+            <Card className="lg:sticky lg:top-24 rounded-2xl border border-[#E5E5EF] shadow-sm">
               <CardHeader className="pb-4">
-                <CardTitle className="text-2xl font-bold">Filters</CardTitle>
+                <CardTitle className="text-2xl font-bold text-[#1A1A2E]">Filters</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="mb-4 text-lg font-semibold">Categories</h3>
+                  <h3 className="mb-4 text-lg font-semibold text-[#1A1A2E]">Categories</h3>
                   <SidebarFilter />
                 </div>
               </CardContent>
@@ -122,21 +122,21 @@ export default function HomePageComponent({ search, category }: Props) {
           </aside>
 
           {/* Products */}
-          <main className="col-span-9">
+          <main className="lg:col-span-9">
             <div className="mb-8 flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold">Browse Products</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A2E]">Browse Products</h1>
+                <p className="mt-1 text-sm text-[#1A1A2E]/50">
                   Buy and sell items within your campus.
                 </p>
               </div>
             </div>
 
             {products.length === 0 ? (
-              <div className="flex h-96 flex-col items-center justify-center rounded-xl border border-dashed">
-                <ShoppingBag className="mb-4 h-14 w-14 text-gray-400" />
-                <h2 className="text-2xl font-semibold">No Products Found</h2>
-                <p className="mt-2 text-muted-foreground">
+              <div className="flex h-96 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E5E5EF]">
+                <ShoppingBag className="mb-4 h-14 w-14 text-[#6C5CE7]/40" />
+                <h2 className="text-2xl font-semibold text-[#1A1A2E]">No Products Found</h2>
+                <p className="mt-2 text-[#1A1A2E]/50">
                   Be the first to sell something on Campus Marketplace.
                 </p>
               </div>
@@ -145,8 +145,8 @@ export default function HomePageComponent({ search, category }: Props) {
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                   {products.map((product) => (
                     <Link href={`/products/${product.id}`} key={product.id}>
-                      <Card className="group overflow-hidden rounded-2xl border-0 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
-                        <div className="relative h-60 overflow-hidden bg-slate-100">
+                      <Card className="group overflow-hidden rounded-2xl border-0 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-[#6C5CE7]/10">
+                        <div className="relative h-60 overflow-hidden bg-[#F7F7FB]">
                           <Image
                             src={
                               product.images[0]?.imageUrl || "/placeholder.jpg"
@@ -164,23 +164,23 @@ export default function HomePageComponent({ search, category }: Props) {
                           </div>
                         </div>
                         <CardContent className="space-y-3 p-5">
-                          <span className="inline-block rounded-md border px-2 py-1 text-xs font-medium text-muted-foreground">
+                          <span className="inline-block rounded-full bg-[#6C5CE7]/10 px-2.5 py-1 text-xs font-semibold text-[#6C5CE7]">
                             {product.category.charAt(0).toUpperCase() +
                               product.category.slice(1)}
                           </span>
-                          <h2 className="line-clamp-2 text-base font-semibold">
+                          <h2 className="line-clamp-2 text-base font-semibold text-[#1A1A2E]">
                             {product.title}
                           </h2>
-                          <p className="text-2xl font-bold">
+                          <p className="text-2xl font-bold text-[#1A1A2E]">
                             ₹
                             {new Intl.NumberFormat("en-IN").format(
                               product.price,
                             )}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-[#1A1A2E]/50">
                             Seller • {product.seller.name ?? "Unknown"}
                           </p>
-                          <Button variant="outline" className="w-full">
+                          <Button variant="outline" className="w-full rounded-full border-[#E5E5EF] hover:border-[#6C5CE7] hover:bg-[#6C5CE7]/5 hover:text-[#6C5CE7]">
                             <ShoppingBag className="mr-2 h-4 w-4" />
                             View Product
                           </Button>
@@ -193,13 +193,13 @@ export default function HomePageComponent({ search, category }: Props) {
                 <div ref={loadMoreRef} className="h-10" />
 
                 {isFetchingNextPage && (
-                  <div className="py-6 text-center text-muted-foreground">
+                  <div className="py-6 text-center text-[#1A1A2E]/50">
                     Loading more products...
                   </div>
                 )}
 
                 {!hasNextPage && (
-                  <div className="py-6 text-center text-muted-foreground">
+                  <div className="py-6 text-center text-[#1A1A2E]/50">
                     No more products to show.
                   </div>
                 )}

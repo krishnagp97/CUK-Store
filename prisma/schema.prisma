@@ -29,16 +29,19 @@ model Message {
 }
 
 model Conversation {
-  id        String    @id @default(cuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  buyerId   String
-  sellerId  String
-  productId String
-  buyer     User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
-  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  seller    User      @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
-  messages  Message[]
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  buyerId       String
+  sellerId      String
+  productId     String
+  lastMessage   String?
+  lastMessageAt DateTime?
+  lastSenderId  String?
+  buyer         User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  seller        User      @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  messages      Message[]
 
   @@unique([buyerId, productId])
   @@index([buyerId])
