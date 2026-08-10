@@ -24,14 +24,17 @@ export default function BottomTabBar() {
     <>
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E5E5EF] bg-white/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)] supports-backdrop-filter:bg-white/80 lg:hidden">
         <div className="mx-auto flex h-16 max-w-7xl items-stretch justify-around px-2">
-          {navLinks.map(({ href, label, icon: Icon, isPrimary }) =>
-            isPrimary ? (
+          {navLinks.map(({ href, label, icon: Icon, isPrimary }) => {
+            const isActive =
+              href === "/" ? pathname === "/" : pathname?.startsWith(href);
+
+            return isPrimary ? (
               <Link
                 key={href}
                 href={href}
                 className="flex flex-1 flex-col items-center justify-center gap-0.5"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-[#6C5CE7] to-[#8B7CF6] text-white shadow-sm shadow-[#6C5CE7]/40">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-[#6C5CE7] to-[#8B7CF6] text-white shadow-md shadow-[#6C5CE7]/40 transition-transform active:scale-95">
                   <Icon size={22} />
                 </span>
               </Link>
@@ -39,15 +42,29 @@ export default function BottomTabBar() {
               <Link
                 key={href}
                 href={href}
-                className="flex flex-1 flex-col items-center justify-center gap-1 text-[#1A1A2E]/50 transition active:text-[#6C5CE7]"
+                className={`relative flex flex-1 flex-col items-center justify-center gap-1 transition-colors active:text-[#6C5CE7] ${
+                  isActive ? "text-[#6C5CE7]" : "text-[#1A1A2E]/50"
+                }`}
               >
-                <Icon size={22} className="shrink-0" />
-                <span className="text-[10px] font-medium leading-none">
+                {isActive && (
+                  <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#6C5CE7]" />
+                )}
+                <Icon
+                  size={22}
+                  className="shrink-0"
+                  fill={isActive ? "currentColor" : "none"}
+                  fillOpacity={isActive ? 0.15 : 0}
+                />
+                <span
+                  className={`text-[10px] leading-none ${
+                    isActive ? "font-semibold" : "font-medium"
+                  }`}
+                >
                   {label}
                 </span>
               </Link>
-            ),
-          )}
+            );
+          })}
         </div>
       </div>
 

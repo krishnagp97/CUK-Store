@@ -196,7 +196,10 @@ export default function ProductForm() {
         <CardContent className="space-y-5 px-4 pb-6 sm:space-y-6 sm:px-6">
           {/* Product Name */}
           <div>
-            <Label htmlFor="title" className="text-sm font-medium text-[#1A1A2E]">
+            <Label
+              htmlFor="title"
+              className="text-sm font-medium text-[#1A1A2E]"
+            >
               Product Name
             </Label>
             <Input
@@ -214,7 +217,9 @@ export default function ProductForm() {
 
           {/* Category */}
           <div>
-            <Label className="text-sm font-medium text-[#1A1A2E]">Category</Label>
+            <Label className="text-sm font-medium text-[#1A1A2E]">
+              Category
+            </Label>
             <Controller
               control={control}
               name="category"
@@ -242,16 +247,24 @@ export default function ProductForm() {
 
           {/* Price */}
           <div>
-            <Label htmlFor="price" className="text-sm font-medium text-[#1A1A2E]">
+            <Label
+              htmlFor="price"
+              className="text-sm font-medium text-[#1A1A2E]"
+            >
               Price
             </Label>
-            <Input
-              id="price"
-              type="number"
-              placeholder="₹5000"
-              className="mt-1.5 h-11 rounded-xl border-[#E5E5EF] transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#6C5CE7] focus-visible:ring-offset-0"
-              {...register("price")}
-            />
+            <div className="relative mt-1.5">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-[#1A1A2E]/40">
+                ₹
+              </span>
+              <Input
+                id="price"
+                type="number"
+                placeholder="5000"
+                className="h-11 rounded-xl border-[#E5E5EF] pl-7 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#6C5CE7] focus-visible:ring-offset-0"
+                {...register("price")}
+              />
+            </div>
             {errors.price && (
               <p className="mt-1 text-sm text-red-500">
                 {errors.price.message}
@@ -261,7 +274,10 @@ export default function ProductForm() {
 
           {/* Description */}
           <div>
-            <Label htmlFor="description" className="text-sm font-medium text-[#1A1A2E]">
+            <Label
+              htmlFor="description"
+              className="text-sm font-medium text-[#1A1A2E]"
+            >
               Description
             </Label>
             <Textarea
@@ -280,9 +296,17 @@ export default function ProductForm() {
 
           {/* Images */}
           <div>
-            <Label htmlFor="images" className="text-sm font-medium text-[#1A1A2E]">
-              Images (up to 3)
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="images"
+                className="text-sm font-medium text-[#1A1A2E]"
+              >
+                Images (up to 3)
+              </Label>
+              <span className="text-xs text-[#1A1A2E]/40">
+                {images.length}/3
+              </span>
+            </div>
 
             <Input
               id="images"
@@ -306,15 +330,17 @@ export default function ProductForm() {
                 {uploadedImages.map((img, index) => (
                   <div
                     key={img.publicId}
-                    className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-xl shadow-sm transition-transform duration-200 hover:scale-[1.03] sm:h-24 sm:w-24"
+                    className="group relative h-20 w-20 shrink-0 transition-transform duration-200 hover:scale-[1.03] sm:h-24 sm:w-24"
                   >
-                    <Image
-                      src={img.imageUrl}
-                      alt={`Product image ${index + 1}`}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      fill
-                      className="object-cover"
-                    />
+                    <div className="relative h-full w-full overflow-hidden rounded-xl shadow-sm">
+                      <Image
+                        src={img.imageUrl}
+                        alt={`Product image ${index + 1}`}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
@@ -331,7 +357,6 @@ export default function ProductForm() {
                 ))}
               </div>
             )}
-
             {errors.images && (
               <p className="mt-1 text-sm text-red-500">
                 {errors.images.message}
@@ -350,7 +375,14 @@ export default function ProductForm() {
             disabled={isSubmitting || uploading}
             type="submit"
           >
-            {isSubmitting ? "Publishing..." : "Publish Product"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              "Publish Product"
+            )}
           </Button>
         </CardContent>
       </form>

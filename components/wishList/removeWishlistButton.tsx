@@ -59,10 +59,10 @@ export default function RemoveWishlistButton({ productId }: Props) {
       variant="secondary"
       disabled={loading}
       onClick={remove}
-      className="absolute right-3 top-3 z-10 rounded-full"
+      className="absolute right-3 top-3 z-10 rounded-full bg-white/90 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-white hover:shadow-lg disabled:cursor-not-allowed"
     >
       {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
       ) : (
         <Trash2 className="h-4 w-4 text-red-500" />
       )}

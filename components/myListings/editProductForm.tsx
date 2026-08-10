@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, ImagePlus, Package  } from "lucide-react";
 import imageCompression from "browser-image-compression";
 
 import {
@@ -200,22 +200,32 @@ export default function EditProductForm({ product }: EditProductFormProps) {
   }
 
   return (
-    <Card className="mx-auto max-w-3xl">
-      <CardHeader>
-        <CardTitle className="text-3xl">Edit Product</CardTitle>
+    <Card className="mx-auto max-w-3xl rounded-2xl border-muted/60 shadow-lg">
+      <CardHeader className="space-y-2 border-b pb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+            <Package className="h-5 w-5 text-primary" />
+          </div>
+          <CardTitle className="text-3xl font-extrabold tracking-tight">
+            Edit Product
+          </CardTitle>
+        </div>
         <p className="text-muted-foreground">
           Update your product information.
         </p>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-7 pt-6">
           {/* Product Name */}
-          <div>
-            <Label htmlFor="title">Product Name</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="title" className="text-sm font-medium">
+              Product Name
+            </Label>
             <Input
               id="title"
               placeholder="e.g. iPhone 13 Pro"
+              className="rounded-xl"
               {...register("title")}
             />
             {errors.title && (
@@ -226,14 +236,14 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           </div>
 
           {/* Category */}
-          <div>
-            <Label>Category</Label>
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">Category</Label>
             <Controller
               control={control}
               name="category"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl">
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -254,14 +264,22 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           </div>
 
           {/* Price */}
-          <div>
-            <Label htmlFor="price">Price</Label>
-            <Input
-              id="price"
-              type="number"
-              placeholder="₹5000"
-              {...register("price")}
-            />
+          <div className="space-y-1.5">
+            <Label htmlFor="price" className="text-sm font-medium">
+              Price
+            </Label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                ₹
+              </span>
+              <Input
+                id="price"
+                type="number"
+                placeholder="5000"
+                className="rounded-xl pl-7"
+                {...register("price")}
+              />
+            </div>
             {errors.price && (
               <p className="mt-1 text-sm text-red-500">
                 {errors.price.message}
@@ -270,12 +288,15 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           </div>
 
           {/* Description */}
-          <div>
-            <Label htmlFor="description">Description</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="description" className="text-sm font-medium">
+              Description
+            </Label>
             <Textarea
               id="description"
               rows={6}
               placeholder="Describe your product..."
+              className="rounded-xl"
               {...register("description")}
             />
             {errors.description && (
@@ -286,17 +307,33 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           </div>
 
           {/* Images */}
-          <div>
-            <Label htmlFor="images">Images (up to 3)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="images" className="text-sm font-medium">
+              Images (up to 3)
+            </Label>
 
-            <Input
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              disabled={uploading || images.length >= 3}
-              onChange={handleFileChange}
-            />
+            <label
+              htmlFor="images"
+              className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
+                uploading || images.length >= 3
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer hover:border-primary/50 hover:bg-muted/50"
+              }`}
+            >
+              <ImagePlus className="h-6 w-6 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Click to upload or drag images here
+              </span>
+              <Input
+                id="images"
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={uploading || images.length >= 3}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
 
             {uploading && (
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
@@ -308,13 +345,16 @@ export default function EditProductForm({ product }: EditProductFormProps) {
             {uploadedImages.length > 0 && (
               <div className="mt-3 flex gap-3">
                 {uploadedImages.map((img, index) => (
-                  <div key={img.publicId} className="relative h-20 w-20">
+                  <div
+                    key={img.publicId}
+                    className="relative h-20 w-20 overflow-hidden rounded-xl shadow-sm"
+                  >
                     <Image
                       src={img.imageUrl}
                       alt={product.title}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       fill
-                      className="rounded-md object-cover"
+                      className="object-cover"
                     />
                     <button
                       type="button"
@@ -322,7 +362,7 @@ export default function EditProductForm({ product }: EditProductFormProps) {
                       disabled={
                         deletingIndex === index || uploading || isSubmitting
                       }
-                      className="absolute -right-2 -top-2 rounded-full bg-red-500 p-0.5 text-white disabled:opacity-50"
+                      className="absolute -right-2 -top-2 rounded-full bg-red-500 p-0.5 text-white shadow-sm transition-transform hover:scale-110 disabled:opacity-50"
                     >
                       {deletingIndex === index ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -342,10 +382,15 @@ export default function EditProductForm({ product }: EditProductFormProps) {
             )}
           </div>
 
-          {submitError && <p className="text-sm text-red-500">{submitError}</p>}
+          {submitError && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-500">
+              {submitError}
+            </p>
+          )}
 
           <Button
-            className="w-full"
+            className="w-full rounded-xl"
+            size="lg"
             disabled={isSubmitting || uploading}
             type="submit"
           >

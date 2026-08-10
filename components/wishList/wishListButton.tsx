@@ -67,13 +67,13 @@ export default function WishlistButton({
       type="button"
       onClick={toggleWishlist}
       disabled={loading}
-      className="rounded-full bg-white p-2 shadow-lg transition hover:scale-110 disabled:opacity-50"
+      className="rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
     >
       <Heart
-        className={`h-5 w-5 transition ${
+        className={`h-5 w-5 transition-all duration-200 ${
           wishlisted
-            ? "fill-red-500 text-red-500"
-            : "text-gray-500 hover:text-red-500 hover:fill-red-500"
+            ? "scale-110 fill-red-500 text-red-500"
+            : "text-gray-500 hover:fill-red-500 hover:text-red-500"
         }`}
       />
     </button>

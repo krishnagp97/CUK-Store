@@ -14,7 +14,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
-import { User, Settings, LogOut } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 
 export default function UserMenu() {
   const router = useRouter();
@@ -29,29 +29,37 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="cursor-pointer">
+        <Avatar className="cursor-pointer ring-2 ring-transparent transition-all hover:ring-primary/20">
           <AvatarImage src="/" />
 
-          <AvatarFallback>
+          <AvatarFallback className="bg-primary/10 font-semibold text-primary">
             {session?.user?.name?.charAt(0) ?? "U"}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>
-          <div>
-            <p className="font-semibold">{session?.user?.name}</p>
+      <DropdownMenuContent align="end" className="w-64 rounded-xl p-2">
+        <DropdownMenuLabel className="px-2 py-2">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src="/" />
+              <AvatarFallback className="bg-primary/10 font-semibold text-primary">
+                {session?.user?.name?.charAt(0) ?? "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{session?.user?.name}</p>
 
-            <p className="text-xs text-muted-foreground">
-              {session?.user?.email}
-            </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {session?.user?.email}
+              </p>
+            </div>
           </div>
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem asChild>
+        <DropdownMenuItem asChild className="cursor-pointer rounded-lg py-2">
           <Link href="/settings">
             <Settings className="mr-2 h-4 w-4" />
             Settings
@@ -62,7 +70,7 @@ export default function UserMenu() {
 
         <DropdownMenuItem
           onClick={handleLogout}
-          className="cursor-pointer text-red-600 focus:text-red-600"
+          className="cursor-pointer rounded-lg py-2 text-red-600 focus:bg-red-50 focus:text-red-600"
         >
           <LogOut className="mr-2 h-4 w-4" />
           Logout
