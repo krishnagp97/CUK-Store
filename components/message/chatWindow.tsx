@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Prisma } from "@prisma/client";
 import { useAbly } from "ably/react";
 import Image from "next/image";
-import { Check, CheckCheck } from "lucide-react";
+import { Check, CheckCheck, ArrowLeft } from "lucide-react";
 import MessageInput from "./messageInput";
+import Link from "next/link";
 
 type MessageWithSender = Prisma.MessageGetPayload<{
   include: {
@@ -399,7 +400,16 @@ export default function ChatWindow({
   return (
     <div className="flex h-[calc(100vh-120px)] flex-col overflow-hidden rounded-2xl border border-[#E5E5EF] bg-white">
       {/* Header */}
-      <div className="relative flex items-center gap-2.5 border-b border-[#E5E5EF] p-3 sm:gap-3 sm:p-4">
+      <div className="relative flex items-center gap-2 border-b border-[#E5E5EF] p-3 sm:gap-3 sm:p-4">
+        {/* Back button */}
+        <Link
+          href="/message"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#1A1A2E]/60 transition-colors hover:bg-[#F7F7FB] hover:text-[#6C5CE7]"
+          aria-label="Back to messages"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+
         {/* User avatar */}
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#6C5CE7]/10 font-semibold text-[#6C5CE7] sm:h-10 sm:w-10">
           {otherUser.name ? otherUser.name.charAt(0).toUpperCase() : "U"}
@@ -446,7 +456,6 @@ export default function ChatWindow({
           )}
         </div>
       </div>
-
       {/* Mobile-only status row, since center status is hidden on small screens */}
       <div className="border-b border-[#E5E5EF] px-3 py-1.5 sm:hidden">
         <p className="text-xs font-medium">
@@ -459,7 +468,6 @@ export default function ChatWindow({
           )}
         </p>
       </div>
-
       {/* Messages */}
       <div
         ref={messagesContainerRef}
@@ -546,7 +554,6 @@ export default function ChatWindow({
 
         <div ref={bottomRef} className="h-1 scroll-mb-4" />
       </div>
-
       {/* Input */}
       <MessageInput
         conversationId={conversationId}

@@ -1,11 +1,9 @@
+
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import ChatWindow from "@/components/message/chatWindow";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { ably } from "@/lib/ably";
-
-
 
 export default async function MessagePage({
   params,
@@ -49,18 +47,21 @@ export default async function MessagePage({
           },
         },
       },
+
       buyer: {
         select: {
           id: true,
           name: true,
         },
       },
+
       seller: {
         select: {
           id: true,
           name: true,
         },
       },
+
       product: {
         select: {
           id: true,
@@ -80,9 +81,9 @@ export default async function MessagePage({
   if (!conversation) {
     notFound();
   }
-  
 
-  return (
+return (
+  <div className="h-[calc(100dvh-64px)] overflow-hidden">
     <ChatWindow
       conversationId={conversation.id}
       initialMessages={conversation.messages}
@@ -94,5 +95,7 @@ export default async function MessagePage({
       }
       product={conversation.product}
     />
-  );
+  </div>
+);
 }
+
