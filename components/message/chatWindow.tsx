@@ -538,7 +538,7 @@ export default function ChatWindow({
 
                       {mine &&
                         (msg.readAt ? (
-                          <CheckCheck className="h-3 w-3 text-white" />
+                          <CheckCheck className="h-3.5 w-3.5 text-cyan-300" />
                         ) : msg.deliveredAt ? (
                           <CheckCheck className="h-3 w-3 text-white/60" />
                         ) : (

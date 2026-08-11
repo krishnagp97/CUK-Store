@@ -1,3 +1,4 @@
+
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { render } from "@react-email/render";
@@ -19,6 +20,13 @@ export const auth = betterAuth({
     requireEmailVerification: true,
   },
 
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+  },
+
   emailVerification: {
     sendOnSignUp: true,
     sendOnSignIn: true,
@@ -30,7 +38,7 @@ export const auth = betterAuth({
         EmailTemplate({
           verificationUrl: url,
           userName: user.name,
-        })
+        }),
       );
 
       await sendEmail({
@@ -41,3 +49,4 @@ export const auth = betterAuth({
     },
   },
 });
+

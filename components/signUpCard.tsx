@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { signUp } from "@/lib/auth-client";
+import { signUp, signIn } from "@/lib/auth-client";
 import {
   Card,
   CardContent,
@@ -69,6 +69,16 @@ export default function SignUpCard() {
     });
 
     router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+  };
+
+  const handleGoogleSignUp = async () => {
+    setErrorMessage("");
+    try {
+      await signIn.social({ provider: "google", callbackURL: "/" });
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Unable to continue with Google. Please try again.");
+    }
   };
 
   return (
@@ -173,6 +183,7 @@ export default function SignUpCard() {
             variant="outline"
             size="lg"
             className="w-full rounded-xl"
+            onClick={handleGoogleSignUp}
           >
             Continue with Google
           </Button>

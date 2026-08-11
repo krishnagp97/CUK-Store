@@ -57,6 +57,27 @@ export default function SignInCard() {
       setLoading(false);
     }
   };
+
+  const handleGoogleSignIn = async () => {
+    setErrorMessage("");
+    setLoading(true);
+
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+
+      if (error) {
+        setErrorMessage(error.message || "Google sign-in failed");
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Something went wrong with Google sign-in");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <Card className="w-full max-w-md rounded-2xl border-muted/60 shadow-xl">
       <CardHeader className="space-y-1.5 pb-2 text-center">
@@ -141,6 +162,8 @@ export default function SignInCard() {
             variant="outline"
             size="lg"
             className="w-full rounded-xl"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
           >
             Continue with Google
           </Button>

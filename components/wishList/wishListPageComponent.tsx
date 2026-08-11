@@ -40,7 +40,7 @@ export default function WishListPageComponent({
         {/* Empty State */}
         {wishlist.length === 0 ? (
           <Card className="rounded-2xl border-dashed shadow-none">
-            <CardContent className="flex min-h-80 flex-col items-center justify-center gap-4 px-4 py-8 text-center sm:min-h-[360px] sm:gap-5">
+            <CardContent className="flex min-h-80 flex-col items-center justify-center gap-4 px-4 py-8 text-center sm:min-h-90 sm:gap-5">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted sm:h-16 sm:w-16">
                 <Heart className="h-7 w-7 text-muted-foreground sm:h-8 sm:w-8" />
               </div>
@@ -83,7 +83,7 @@ export default function WishListPageComponent({
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent" />
 
                     <RemoveWishlistButton
                       productId={item.product.id}
