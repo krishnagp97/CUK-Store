@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -63,19 +62,20 @@ export default function WishListPageComponent({
         ) : (
           /* Wishlist Grid */
           <div className="grid grid-cols-1 gap-3 sm:gap-5 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
-            {wishlist.map((item) => (
-              <Link
-                key={item.id}
-                href={`/products/${item.product.id}`}
-                className="block"
-              >
-                <Card className="group h-full overflow-hidden rounded-xl border-muted/60 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:rounded-2xl">
+            {wishlist.map((item) => {
+              const isSold = item.product.status === "SOLD";
+
+              const card = (
+                <Card
+                  className={`group h-full overflow-hidden rounded-xl border-muted/60 shadow-sm transition-all duration-300 sm:rounded-2xl ${
+                    !isSold ? "hover:-translate-y-1 hover:shadow-xl" : ""
+                  }`}
+                >
                   {/* Image */}
                   <div className="relative h-40 overflow-hidden bg-slate-100 sm:h-52 lg:h-56">
                     <Image
                       src={
-                        item.product.images[0]?.imageUrl ||
-                        "/placeholder.jpg"
+                        item.product.images[0]?.imageUrl || "/placeholder.jpg"
                       }
                       alt={item.product.title}
                       fill
@@ -85,9 +85,19 @@ export default function WishListPageComponent({
 
                     <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent" />
 
-                    <RemoveWishlistButton
-                      productId={item.product.id}
-                    />
+                    {/* Status */}
+                    <span
+                      className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${
+                        isSold
+                          ? "bg-red-100 text-red-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {isSold ? "Sold" : "Available"}
+                    </span>
+
+                    {/* Remove wishlist */}
+                    <RemoveWishlistButton productId={item.product.id} />
                   </div>
 
                   {/* Content */}
@@ -114,25 +124,45 @@ export default function WishListPageComponent({
                     {/* View Product */}
                     <Button
                       variant="outline"
+                      disabled={isSold}
                       className="h-9 w-full rounded-full px-2 text-xs sm:h-11 sm:text-sm"
                     >
                       <ShoppingBag className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
-                      View Product
+
+                      {isSold ? "Product Sold" : "View Product"}
                     </Button>
 
                     {/* Seller */}
                     <p className="pt-0.5 text-[10px] text-muted-foreground sm:text-sm">
-                      Seller •{" "}
-                      {item.product.seller.name ?? "Unknown"}
+                      Seller • {item.product.seller.name ?? "Unknown"}
                     </p>
                   </CardContent>
                 </Card>
-              </Link>
-            ))}
+              );
+
+              // SOLD → no Link
+              if (isSold) {
+                return (
+                  <div key={item.id} className="block">
+                    {card}
+                  </div>
+                );
+              }
+
+              // AVAILABLE → clickable
+              return (
+                <Link
+                  key={item.id}
+                  href={`/products/${item.product.id}`}
+                  className="block"
+                >
+                  {card}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
     </div>
   );
 }
-

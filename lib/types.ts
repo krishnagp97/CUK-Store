@@ -16,6 +16,7 @@ export type WishlistCardData = {
     title: string;
     price: number;
     category: string;
+    status: "AVAILABLE" | "SOLD";
 
     images: {
       imageUrl: string;

@@ -1,9 +1,9 @@
-
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   Eye,
@@ -28,12 +28,10 @@ type MyListingsPageComponentProps = {
 export function MyListingsPageComponent({
   products,
 }: MyListingsPageComponentProps) {
+  const queryClient = useQueryClient();
   const router = useRouter();
 
-  async function toggleStatus(
-    id: string,
-    status: "AVAILABLE" | "SOLD",
-  ) {
+  async function toggleStatus(id: string, status: "AVAILABLE" | "SOLD") {
     const confirmed = window.confirm(
       `Mark this product as ${status.toLowerCase()}?`,
     );
@@ -52,11 +50,12 @@ export function MyListingsPageComponent({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          data.error ?? "Failed to update status",
-        );
+        throw new Error(data.error ?? "Failed to update status");
       }
 
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
       router.refresh();
 
       toast.success(
@@ -89,6 +88,10 @@ export function MyListingsPageComponent({
         throw new Error("Failed to delete product");
       }
 
+      await queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+
       router.refresh();
       toast.success("Product deleted successfully.");
     } catch (err) {
@@ -112,13 +115,8 @@ export function MyListingsPageComponent({
             </p>
           </div>
 
-          <Link
-            href="/sell"
-            className="w-full sm:w-auto"
-          >
-            <Button
-              className="h-10 w-full gap-2 rounded-full shadow-sm sm:h-11 sm:w-auto"
-            >
+          <Link href="/sell" className="w-full sm:w-auto">
+            <Button className="h-10 w-full gap-2 rounded-full shadow-sm sm:h-11 sm:w-auto">
               <Plus className="h-4 w-4" />
               Add Product
             </Button>
@@ -138,14 +136,10 @@ export function MyListingsPageComponent({
               </h2>
 
               <p className="max-w-sm text-sm text-muted-foreground sm:text-base">
-                Start selling your first product and it will
-                show up here.
+                Start selling your first product and it will show up here.
               </p>
 
-              <Link
-                href="/sell"
-                className="w-full sm:w-auto"
-              >
+              <Link href="/sell" className="w-full sm:w-auto">
                 <Button className="mt-1 w-full rounded-full sm:w-auto">
                   Add Product
                 </Button>
@@ -165,10 +159,7 @@ export function MyListingsPageComponent({
                     {/* Image */}
                     <div className="relative h-48 overflow-hidden bg-slate-100 sm:h-56 md:h-full md:min-h-62.5">
                       <Image
-                        src={
-                          product.images[0]?.imageUrl ||
-                          "/placeholder.jpg"
-                        }
+                        src={product.images[0]?.imageUrl || "/placeholder.jpg"}
                         alt={product.title}
                         fill
                         sizes="(max-width:768px) 100vw, (max-width:1200px) 40vw, 33vw"
@@ -189,9 +180,9 @@ export function MyListingsPageComponent({
 
                           <p className="mt-1 flex items-center gap-1 text-xl font-bold text-primary sm:text-2xl">
                             ₹
-                            {new Intl.NumberFormat(
-                              "en-IN",
-                            ).format(product.price)}
+                            {new Intl.NumberFormat("en-IN").format(
+                              product.price,
+                            )}
                           </p>
                         </div>
 
@@ -247,12 +238,7 @@ export function MyListingsPageComponent({
                         {product.status === "AVAILABLE" ? (
                           <Button
                             className="h-10 flex-1 rounded-full bg-green-600 text-xs text-white hover:bg-green-700 sm:h-11 sm:flex-none sm:text-sm"
-                            onClick={() =>
-                              toggleStatus(
-                                product.id,
-                                "SOLD",
-                              )
-                            }
+                            onClick={() => toggleStatus(product.id, "SOLD")}
                           >
                             Mark as Sold
                           </Button>
@@ -260,10 +246,7 @@ export function MyListingsPageComponent({
                           <Button
                             className="h-10 flex-1 rounded-full bg-blue-600 text-xs text-white hover:bg-blue-700 sm:h-11 sm:flex-none sm:text-sm"
                             onClick={() =>
-                              toggleStatus(
-                                product.id,
-                                "AVAILABLE",
-                              )
+                              toggleStatus(product.id, "AVAILABLE")
                             }
                           >
                             Mark as Available
@@ -273,9 +256,7 @@ export function MyListingsPageComponent({
                         <Button
                           variant="destructive"
                           className="h-10 flex-1 rounded-full sm:h-11 sm:flex-none"
-                          onClick={() =>
-                            deleteProduct(product.id)
-                          }
+                          onClick={() => deleteProduct(product.id)}
                         >
                           <Trash2 className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
                           Delete
@@ -292,4 +273,3 @@ export function MyListingsPageComponent({
     </div>
   );
 }
-

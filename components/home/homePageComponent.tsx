@@ -67,7 +67,6 @@ export default function HomePageComponent({ search, category }: Props) {
 
       getNextPageParam: (lastPage) => lastPage.nextCursor,
 
-      staleTime: 1000 * 60 * 5,
     });
   const products = useMemo(
     () => data?.pages.flatMap((page) => page.products) ?? [],
