@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "🛒 CUK Store",
+  title: "CUK Store",
   description: "Buy and Sell Marketplace",
 };
 
