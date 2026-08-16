@@ -43,7 +43,7 @@ export default function VerifyEmailPage() {
 
       const { error } = await authClient.sendVerificationEmail({
         email,
-        callbackURL: "/sign-in",
+        callbackURL: "/",
       });
 
       if (error) {
