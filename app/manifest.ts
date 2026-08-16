@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    id: "/",
+    id: "/cuk-store-v2",
     name: "CUK Store",
     short_name: "CUK Store",
     description: "Buy and sell products within your campus community",
