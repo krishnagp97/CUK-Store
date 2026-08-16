@@ -1,4 +1,4 @@
-const CACHE_NAME = "cuk-store-v2";
+const CACHE_NAME = "cuk-store-v3";
 
 const STATIC_ASSETS = [
   "/",
