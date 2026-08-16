@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -8,6 +8,7 @@ import AblyProvider from "@/components/providers/ablyProvider";
 import Providers from "./providers";
 import { Toaster } from "sonner";
 import GlobalRealtime from "@/components/realtime/globalRealtime";
+import PWARegister from "@/components/pwa-register";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,6 +30,12 @@ export const metadata: Metadata = {
   description: "Buy and Sell Marketplace",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0B2A5B",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,6 +55,7 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-screen flex-col">
+        <PWARegister />
         <Providers>
           <AblyProvider>
             <Navbar />
