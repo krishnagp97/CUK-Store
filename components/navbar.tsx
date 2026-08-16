@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import SearchBar from "./searchBar";
 import Image from "next/image";
 import BottomTabBar from "./bottomTabBar";
+import InstallButton from "./install-button";
 
 export default async function Navbar() {
   const session = await auth.api.getSession({
@@ -76,6 +77,7 @@ export default async function Navbar() {
             </div>
           ) : (
             <div className="flex shrink-0 items-center gap-2 lg:ml-2 lg:border-l lg:border-[#E5E5EF] lg:pl-3">
+              <InstallButton />
               <Link
                 href="/sign-in"
                 className="rounded-full px-2.5 py-1.5 text-xs font-medium text-[#1A1A2E]/70 transition-colors duration-200 hover:bg-[#F7F7FB] hover:text-[#1A1A2E] sm:px-3 sm:py-2 sm:text-sm"
