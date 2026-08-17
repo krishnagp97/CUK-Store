@@ -1,8 +1,7 @@
 # CUK Store 🛍️
 
-CUK Store is a full-stack **campus marketplace** built for students to buy and sell products within their college community.
-
-The platform allows students to create product listings, manage their products, save products to a wishlist, communicate with buyers and sellers in real time, and track message delivery and read status.
+CUK Store is a full-stack **campus marketplace and Progressive Web App (PWA)**
+built for students to buy and sell products within their college community.
 
 ---
 
@@ -11,6 +10,29 @@ The platform allows students to create product listings, manage their products, 
 **Production:** https://cuk-store.vercel.app
 
 ---
+
+## 📸 Screenshots
+
+### Home Page
+![Home Page](./public/screenshots/home%20Page.png)
+
+### Product Page
+![Product Page](./public/screenshots/product%20Page.png)
+
+### Sell Page
+![Sell Page](./public/screenshots/sell%20Page.png)
+
+### Wishlist
+![Wishlist](./public/screenshots/wishList%20Page.png)
+
+### Message List
+![Message List](./public/screenshots/messageList%20Page.png)
+
+### Conversation
+![Conversation](./public/screenshots/conversation%20Page.png)
+
+### Settings
+![Settings](./public/screenshots/setting%20Page.png)
 
 ## ✨ Features
 
@@ -57,6 +79,15 @@ The platform allows students to create product listings, manage their products, 
 - Tailwind CSS
 - Accessible UI components
 
+### 📱 Progressive Web App (PWA)
+- Installable on mobile and desktop
+- App-like experience
+- Responsive mobile-first design
+- Custom app icon
+- Standalone app experience
+- Mobile navigation
+- Prevents accidental zooming on mobile
+
 ### 🐳 Docker
 - Multi-stage Docker build
 - Production-optimized Next.js image
@@ -64,7 +95,7 @@ The platform allows students to create product listings, manage their products, 
 - Environment variables supplied securely
 - Runs using Node.js Alpine image
 
-### ☁️ Deployment
+### ☁️ Infrastructure & Deployment
 - Deployed on Vercel
 - PostgreSQL database
 - Cloudinary image storage
@@ -82,6 +113,7 @@ The platform allows students to create product listings, manage their products, 
 - shadcn/ui
 - Radix UI
 - Lucide React
+- Progressive Web App (PWA)
 
 ### Backend
 - Next.js Route Handlers
