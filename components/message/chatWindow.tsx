@@ -398,7 +398,7 @@ export default function ChatWindow({
   }, [loadingOlder, hasMore]);
 
   return (
-    <div className="flex h-[calc(100vh-120px)] flex-col overflow-hidden rounded-2xl border border-[#E5E5EF] bg-white">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#E5E5EF] bg-white">
       {/* Header */}
       <div className="relative flex items-center gap-2 border-b border-[#E5E5EF] p-3 sm:gap-3 sm:p-4">
         {/* Back button */}
@@ -471,7 +471,7 @@ export default function ChatWindow({
       {/* Messages */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 space-y-2.5 overflow-y-auto bg-[#F7F7FB] p-3 sm:space-y-3 sm:p-4"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-2.5 bg-[#F7F7FB] p-3 sm:space-y-3 sm:p-4"
       >
         {messages.length === 0 ? (
           <p className="text-center text-sm text-[#1A1A2E]/50">

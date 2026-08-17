@@ -1,4 +1,3 @@
-
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import ChatWindow from "@/components/message/chatWindow";
@@ -82,20 +81,19 @@ export default async function MessagePage({
     notFound();
   }
 
-return (
-  <div className="h-[calc(100dvh-64px)] overflow-hidden">
-    <ChatWindow
-      conversationId={conversation.id}
-      initialMessages={conversation.messages}
-      currentUserId={session.user.id}
-      otherUser={
-        conversation.buyerId === session.user.id
-          ? conversation.seller
-          : conversation.buyer
-      }
-      product={conversation.product}
-    />
-  </div>
-);
+  return (
+    <div className="h-[calc(100vh-104px)] overflow-hidden lg:h-[calc(100vh-64px)]">
+      <ChatWindow
+        conversationId={conversation.id}
+        initialMessages={conversation.messages}
+        currentUserId={session.user.id}
+        otherUser={
+          conversation.buyerId === session.user.id
+            ? conversation.seller
+            : conversation.buyer
+        }
+        product={conversation.product}
+      />
+    </div>
+  );
 }
-
