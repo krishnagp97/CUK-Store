@@ -67,9 +67,6 @@ export default function BottomTabBar() {
           })}
         </div>
       </div>
-
-      {/* Spacer so page content isn't hidden behind fixed bottom bar on mobile */}
-      <div className="h-16 lg:hidden" />
     </>
   );
 }
