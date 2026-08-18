@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function MessageSellerButton({
   productId,
@@ -29,8 +30,13 @@ export default function MessageSellerButton({
 
       const data = await res.json();
 
+      if (res.status === 401) {
+        toast.error("Please login to message the seller");
+        return;
+      }
+
       if (!res.ok) {
-        alert(data.error);
+        toast.error(data.error || "Something went wrong.");
         return;
       }
 
