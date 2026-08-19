@@ -32,10 +32,11 @@ export default function BottomTabBar() {
               <Link
                 key={href}
                 href={href}
+                aria-label={label}
                 className="flex flex-1 flex-col items-center justify-center gap-0.5"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-[#6C5CE7] to-[#8B7CF6] text-white shadow-md shadow-[#6C5CE7]/40 transition-transform active:scale-95">
-                  <Icon size={22} />
+                  <Icon size={22} aria-hidden="true" />
                 </span>
               </Link>
             ) : (
@@ -43,18 +44,23 @@ export default function BottomTabBar() {
                 key={href}
                 href={href}
                 className={`relative flex flex-1 flex-col items-center justify-center gap-1 transition-colors active:text-[#6C5CE7] ${
-                  isActive ? "text-[#6C5CE7]" : "text-[#1A1A2E]/50"
+                  isActive
+                    ? "text-[#6C5CE7]"
+                    : "text-[#1A1A2E]/70"
                 }`}
               >
                 {isActive && (
                   <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#6C5CE7]" />
                 )}
+
                 <Icon
                   size={22}
                   className="shrink-0"
                   fill={isActive ? "currentColor" : "none"}
                   fillOpacity={isActive ? 0.15 : 0}
+                  aria-hidden="true"
                 />
+
                 <span
                   className={`text-[10px] leading-none ${
                     isActive ? "font-semibold" : "font-medium"

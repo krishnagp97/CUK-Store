@@ -59,6 +59,7 @@ export default function RemoveWishlistButton({ productId }: Props) {
       variant="secondary"
       disabled={loading}
       onClick={remove}
+      aria-label="Remove from wishlist"
       className="absolute right-3 top-3 z-10 rounded-full bg-white/90 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-white hover:shadow-lg disabled:cursor-not-allowed"
     >
       {loading ? (

@@ -67,6 +67,8 @@ export default function WishlistButton({
       type="button"
       onClick={toggleWishlist}
       disabled={loading}
+      aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+      aria-pressed={wishlisted}
       className="rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
     >
       <Heart

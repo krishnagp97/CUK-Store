@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import {Inter } from "next/font/google";
 import "./globals.css";
 
 import { cn } from "@/lib/utils";
@@ -13,16 +13,6 @@ import PWARegister from "@/components/pwa-register";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-});
-
-const geistSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
@@ -55,8 +45,6 @@ export default function RootLayout({
         "antialiased",
         "font-sans",
         inter.variable,
-        geistSans.variable,
-        geistMono.variable,
       )}
     >
       <body className="flex min-h-screen flex-col">
