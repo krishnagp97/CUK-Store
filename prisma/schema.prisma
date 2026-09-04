@@ -83,7 +83,7 @@ model Product {
   images        ProductImage[]
   wishlists     Wishlist[]
 
-  @@index([status])
+  @@index([status, createdAt, id])
 }
 
 model ProductImage {
@@ -92,6 +92,7 @@ model ProductImage {
   productId String
   publicId  String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@index([productId])
 }
 
 model Wishlist {
