@@ -84,14 +84,16 @@ export async function GET(req: NextRequest) {
           },
         },
 
-        wishlists: {
-          where: {
-            userId: session?.user.id ?? "",
+        ...(session?.user?.id && {
+          wishlists: {
+            where: {
+              userId: session.user.id,
+            },
+            select: {
+              id: true,
+            },
           },
-          select: {
-            id: true,
-          },
-        },
+        }),
       },
     });
 
@@ -110,7 +112,7 @@ export async function GET(req: NextRequest) {
       createdAt: product.createdAt,
       images: product.images,
       seller: product.seller,
-      isWishlisted: product.wishlists.length > 0,
+      isWishlisted: "wishlists" in product && product.wishlists.length > 0,
     }));
 
     return NextResponse.json(
