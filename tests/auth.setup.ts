@@ -26,27 +26,28 @@ setup("authenticate", async ({ page }) => {
   console.log("LOGIN STATUS:", response.status());
 
   if (!response.ok()) {
-    console.log("LOGIN BODY:", await response.text());
     throw new Error(`Better Auth login failed: ${response.status()}`);
   }
 
-  // Give Next.js/Better Auth time to finish navigation/session handling
-  await page.waitForTimeout(500);
+  // Wait for navigation/session to settle
+  await page.waitForTimeout(1000);
 
-  const cookies = await page.context().cookies();
-
-
+  // Verify session using the SAME browser context
   const sessionResponse = await page.request.get("/api/auth/get-session");
-
-  
-  expect(response.ok()).toBeTruthy();
-  expect(cookies.some((c) => c.name.includes("better-auth"))).toBeTruthy();
 
   const session = await sessionResponse.json();
 
-  expect(session).toBeTruthy();
 
+  expect(sessionResponse.ok()).toBeTruthy();
+
+  // Better Auth normally returns { user, session }
+  expect(session.user).toBeTruthy();
+  expect(session.session).toBeTruthy();
+
+  // Save authenticated browser state
   await page.context().storageState({
     path: "playwright/.auth/user.json",
   });
+
+  console.log("AUTH STATE SAVED");
 });
