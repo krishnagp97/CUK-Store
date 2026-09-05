@@ -9,6 +9,7 @@ import Providers from "./providers";
 import { Toaster } from "sonner";
 import GlobalRealtime from "@/components/realtime/globalRealtime";
 import PWARegister from "@/components/pwa-register";
+import FeedbackButton from "@/components/FeedbackButton";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -54,6 +55,7 @@ export default function RootLayout({
             <Navbar />
             <GlobalRealtime />
             <main className="flex-1">{children}</main>
+            <FeedbackButton />
             <Toaster position="top-right" richColors closeButton />
           </AblyProvider>
         </Providers>
