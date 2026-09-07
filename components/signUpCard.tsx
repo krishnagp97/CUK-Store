@@ -46,6 +46,7 @@ export default function SignUpCard() {
       name,
       email,
       password,
+      callbackURL: "/",
     });
 
     setLoading(false);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "cuk-store-v3";
+const CACHE_NAME = "cuk-store-v4";
 
 const STATIC_ASSETS = [
   "/",
@@ -54,6 +54,13 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/_next/") &&
     url.searchParams.has("_rsc")
   ) {
+    return;
+  }
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    );
     return;
   }
 
