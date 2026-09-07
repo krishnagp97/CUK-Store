@@ -1,4 +1,3 @@
-
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { render } from "@react-email/render";
@@ -33,10 +32,11 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     expiresIn: 60 * 60,
 
-    async sendVerificationEmail({ user, url }) {
+    async sendVerificationEmail({ user, token }) {
+      const verificationUrl = `${process.env.BETTER_AUTH_URL}/verify-email?token=${encodeURIComponent(token)}`;
       const html = await render(
         EmailTemplate({
-          verificationUrl: url,
+          verificationUrl,
           userName: user.name,
         }),
       );
@@ -49,4 +49,3 @@ export const auth = betterAuth({
     },
   },
 });
-
