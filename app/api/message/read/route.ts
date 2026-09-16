@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ably } from "@/lib/ably";
+import { messageReadRateLimiter } from "@/lib/rate-limit";
 
 export async function PATCH(req: Request) {
   try {
@@ -11,9 +12,15 @@ export async function PATCH(req: Request) {
     });
 
     if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await messageReadRateLimiter.limit(session.user.id);
+
+    if (!success) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Too many read requests. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -34,9 +41,7 @@ export async function PATCH(req: Request) {
       },
     });
 
-    const channel = ably.channels.get(
-      `conversation:${conversationId}`
-    );
+    const channel = ably.channels.get(`conversation:${conversationId}`);
 
     await channel.publish("message-read", {
       conversationId,
@@ -50,7 +55,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

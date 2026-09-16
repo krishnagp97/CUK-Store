@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ably } from "@/lib/ably";
+import { messageReadRateLimiter } from "@/lib/rate-limit";
 
 export async function PATCH(
   req: Request,
@@ -15,9 +16,15 @@ export async function PATCH(
     });
 
     if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await messageReadRateLimiter.limit(session.user.id);
+
+    if (!success) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 },
+        { error: "Too many delivery requests. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -39,10 +46,7 @@ export async function PATCH(
     });
 
     if (!message) {
-      return NextResponse.json(
-        { error: "Message not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Message not found" }, { status: 404 });
     }
 
     const isParticipant =
@@ -50,10 +54,7 @@ export async function PATCH(
       message.conversation.sellerId === session.user.id;
 
     if (!isParticipant) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Only the receiver can mark a message as delivered

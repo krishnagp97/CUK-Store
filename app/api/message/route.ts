@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ably } from "@/lib/ably";
+import { messageRateLimiter } from "@/lib/rate-limit";
 
 const MAX_MESSAGE_LENGTH = 1000;
 
@@ -13,9 +14,15 @@ export async function POST(req: Request) {
     });
 
     if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await messageRateLimiter.limit(session.user.id);
+
+    if (!success) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 },
+        { error: "Too many messages. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -24,10 +31,7 @@ export async function POST(req: Request) {
     const trimmedText = text?.trim();
 
     if (!conversationId || !trimmedText) {
-      return NextResponse.json(
-        { error: "Invalid data" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
     if (trimmedText.length > MAX_MESSAGE_LENGTH) {
@@ -39,13 +43,11 @@ export async function POST(req: Request) {
       );
     }
 
-
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: conversationId,
       },
     });
-
 
     if (!conversation) {
       return NextResponse.json(
@@ -54,17 +56,12 @@ export async function POST(req: Request) {
       );
     }
 
-
     if (
       conversation.buyerId !== session.user.id &&
       conversation.sellerId !== session.user.id
     ) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
 
     const message = await prisma.$transaction(async (tx) => {
       const createdMessage = await tx.message.create({
@@ -83,7 +80,6 @@ export async function POST(req: Request) {
         },
       });
 
-
       await tx.conversation.update({
         where: {
           id: conversationId,
@@ -96,11 +92,8 @@ export async function POST(req: Request) {
         },
       });
 
-
       return createdMessage;
     });
-
-
 
     // Realtime updates
     try {
@@ -109,47 +102,29 @@ export async function POST(req: Request) {
         message,
       };
 
-
       await Promise.all([
         // Update chat window
         ably.channels
           .get(`conversation:${conversationId}`)
           .publish("message", message),
 
-
         // Update buyer message list
         ably.channels
           .get(`user:${conversation.buyerId}`)
-          .publish(
-            "conversation-updated",
-            payload,
-          ),
-
+          .publish("conversation-updated", payload),
 
         // Update seller message list
         ably.channels
           .get(`user:${conversation.sellerId}`)
-          .publish(
-            "conversation-updated",
-            payload,
-          ),
+          .publish("conversation-updated", payload),
       ]);
-
     } catch (error) {
-      console.error(
-        "Ably publish failed:",
-        error,
-      );
+      console.error("Ably publish failed:", error);
     }
 
-
     return NextResponse.json(message);
-
   } catch (error) {
-    console.error(
-      "Send message error:",
-      error,
-    );
+    console.error("Send message error:", error);
 
     return NextResponse.json(
       {

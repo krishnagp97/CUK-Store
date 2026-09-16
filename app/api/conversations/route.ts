@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { conversationRateLimiter } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,9 +12,15 @@ export async function POST(req: NextRequest) {
     });
 
     if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await conversationRateLimiter.limit(session.user.id);
+
+    if (!success) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Too many conversation requests. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -22,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (!productId) {
       return NextResponse.json(
         { error: "Product ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,17 +41,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!product) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     // Prevent seller from messaging themselves
     if (product.sellerId === session.user.id) {
       return NextResponse.json(
         { error: "You cannot message yourself." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -83,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

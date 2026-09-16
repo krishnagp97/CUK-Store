@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { conversationMessagesRateLimiter } from "@/lib/rate-limit";
 
 const PAGE_SIZE = 30;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
+  { params }: { params: Promise<{ conversationId: string }> },
 ) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -17,6 +18,17 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { success } = await conversationMessagesRateLimiter.limit(
+    session.user.id,
+  );
+
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many message requests. Please try again later." },
+      { status: 429 },
+    );
+  }
+
   const { conversationId } = await params;
 
   const cursor = request.nextUrl.searchParams.get("cursor");
@@ -24,10 +36,7 @@ export async function GET(
   const conversation = await prisma.conversation.findFirst({
     where: {
       id: conversationId,
-      OR: [
-        { buyerId: session.user.id },
-        { sellerId: session.user.id },
-      ],
+      OR: [{ buyerId: session.user.id }, { sellerId: session.user.id }],
     },
     select: {
       id: true,

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { productStatusRateLimiter } from "@/lib/rate-limit";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -14,9 +15,15 @@ export async function PATCH(
     });
 
     if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await productStatusRateLimiter.limit(session.user.id);
+
+    if (!success) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Too many status updates. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -24,10 +31,7 @@ export async function PATCH(
     const { status } = await req.json();
 
     if (status !== "AVAILABLE" && status !== "SOLD") {
-      return NextResponse.json(
-        { error: "Invalid status" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
     const product = await prisma.product.findUnique({
@@ -37,22 +41,16 @@ export async function PATCH(
     });
 
     if (!product) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     if (product.sellerId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const updatedProduct = await prisma.product.update({
       where: {
-        id
+        id,
       },
       data: {
         status,
@@ -65,7 +63,7 @@ export async function PATCH(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

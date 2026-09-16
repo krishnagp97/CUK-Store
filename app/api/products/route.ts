@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProductSchema } from "@/lib/validations/product";
+import { productCreateRateLimiter } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -150,6 +151,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { message: "You must be signed in to create a listing" },
         { status: 401 },
+      );
+    }
+
+    const { success } = await productCreateRateLimiter.limit(session.user.id);
+
+    if (!success) {
+      return NextResponse.json(
+        {
+          error: "Too many listings created. Please try again later.",
+        },
+        { status: 429 },
       );
     }
 

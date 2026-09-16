@@ -3,11 +3,12 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { wishlistRateLimiter } from "@/lib/rate-limit";
 
 // Add to wishlist
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ productId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -16,8 +17,20 @@ export async function POST(
 
     if (!session) {
       return NextResponse.json(
-        { error: "Please sign in or create an account to add items to your wishlist." },
-        { status: 401 }
+        {
+          error:
+            "Please sign in or create an account to add items to your wishlist.",
+        },
+        { status: 401 },
+      );
+    }
+
+    const { success } = await wishlistRateLimiter.limit(session.user.id);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many wishlist requests. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -31,10 +44,7 @@ export async function POST(
     });
 
     if (!product) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     // Already wishlisted?
@@ -50,7 +60,7 @@ export async function POST(
     if (existing) {
       return NextResponse.json(
         { message: "Already in wishlist" },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -69,7 +79,7 @@ export async function POST(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -77,7 +87,7 @@ export async function POST(
 // Remove from wishlist
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ productId: string }> },
 ) {
   try {
     const session = await auth.api.getSession({
@@ -85,9 +95,15 @@ export async function DELETE(
     });
 
     if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await wishlistRateLimiter.limit(session.user.id);
+
+    if (!success) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Too many wishlist requests. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -108,7 +124,7 @@ export async function DELETE(
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

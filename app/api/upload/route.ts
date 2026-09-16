@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import cloudinary from "@/lib/cloudinary";
+import { uploadRateLimiter } from "@/lib/rate-limit";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await uploadRateLimiter.limit(session.user.id);
+
+    if (!success) {
+      return NextResponse.json(
+        {
+          message: "Too many uploads. Please try again later.",
+        },
+        { status: 429 },
+      );
+    }
+
     const formData = await req.formData();
 
     const file = formData.get("file");
@@ -10,21 +32,21 @@ export async function POST(req: NextRequest) {
     if (!(file instanceof File)) {
       return NextResponse.json(
         { message: "No file uploaded" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!file.type.startsWith("image/")) {
       return NextResponse.json(
         { message: "Only image files are allowed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { message: "Image size must be less than 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,7 +74,7 @@ export async function POST(req: NextRequest) {
               secure_url: result.secure_url,
               public_id: result.public_id,
             });
-          }
+          },
         )
         .end(buffer);
     });
@@ -65,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { message: "Failed to upload image" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

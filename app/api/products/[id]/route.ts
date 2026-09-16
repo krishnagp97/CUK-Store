@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { ProductSchema } from "@/lib/validations/product";
+import { productMutationRateLimiter } from "@/lib/rate-limit";
 
 export async function PATCH(
   req: NextRequest,
@@ -16,6 +17,15 @@ export async function PATCH(
 
     if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await productMutationRateLimiter.limit(session.user.id);
+
+    if (!success) {
+      return NextResponse.json(
+        { message: "Too many product updates. Please try again later." },
+        { status: 429 },
+      );
     }
 
     const { id } = await params;
@@ -90,6 +100,38 @@ export async function DELETE(
   const { id } = await params;
 
   try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await productMutationRateLimiter.limit(session.user.id);
+
+    if (!success) {
+      return NextResponse.json(
+        { message: "Too many product requests. Please try again later." },
+        { status: 429 },
+      );
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { message: "Product not found" },
+        { status: 404 },
+      );
+    }
+
+    if (product.sellerId !== session.user.id) {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     await prisma.productImage.deleteMany({
       where: {
         productId: id,

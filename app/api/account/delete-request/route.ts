@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { deleteRequestRateLimiter } from "@/lib/rate-limit";
 
 export async function POST() {
   const session = await auth.api.getSession({
@@ -9,9 +10,17 @@ export async function POST() {
   });
 
   if (!session) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const { success } = await deleteRequestRateLimiter.limit(session.user.id);
+
+  if (!success) {
     return NextResponse.json(
-      { message: "Unauthorized" },
-      { status: 401 }
+      {
+        message: "Too many deletion requests. Please try again later.",
+      },
+      { status: 429 },
     );
   }
 

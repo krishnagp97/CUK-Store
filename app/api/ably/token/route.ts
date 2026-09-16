@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { ably } from "@/lib/ably";
+import { ablyTokenRateLimiter } from "@/lib/rate-limit";
 
 export async function GET() {
   try {
@@ -11,9 +12,15 @@ export async function GET() {
     });
 
     if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = await ablyTokenRateLimiter.limit(session.user.id);
+
+    if (!success) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Too many token requests. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -27,7 +34,7 @@ export async function GET() {
 
     return NextResponse.json(
       { error: "Failed to generate Ably token" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
