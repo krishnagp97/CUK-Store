@@ -4,6 +4,7 @@ import { productStatusRateLimiter } from "@/lib/rate-limit";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { deleteCacheByPattern } from "@/lib/cache";
 
 export async function PATCH(
   req: NextRequest,
@@ -56,7 +57,11 @@ export async function PATCH(
         status,
       },
     });
-
+    try {
+      await deleteCacheByPattern("products:*");
+    } catch (cacheError) {
+      console.error("Product cache invalidation failed:", cacheError);
+    }
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error(error);

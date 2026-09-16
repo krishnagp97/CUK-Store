@@ -7,10 +7,7 @@ test("user can publish a product", async ({ page }) => {
 
   await page.locator('input[name="title"]').fill(productTitle);
 
-  await page
-    .locator("select")
-    .first()
-    .selectOption({ label: "Electronics" });
+  await page.locator("select").first().selectOption({ label: "Electronics" });
 
   await page.locator('input[name="price"]').fill("999");
 
@@ -24,9 +21,9 @@ test("user can publish a product", async ({ page }) => {
 
   await page.getByRole("button", { name: "Publish Product" }).click();
 
-  await expect(
-    page.getByText(productTitle, { exact: true })
-  ).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(productTitle, { exact: true })).toBeVisible({
+    timeout: 15000,
+  });
 
   try {
     // Verify the created listing appears in My Listings
@@ -52,7 +49,7 @@ test("user can publish a product", async ({ page }) => {
       .locator("..");
 
     if (await listing.count()) {
-      page.once("dialog", async dialog => {
+      page.once("dialog", async (dialog) => {
         await dialog.accept();
       });
 
@@ -63,7 +60,7 @@ test("user can publish a product", async ({ page }) => {
           level: 2,
           name: productTitle,
           exact: true,
-        })
+        }),
       ).toHaveCount(0);
     }
   }

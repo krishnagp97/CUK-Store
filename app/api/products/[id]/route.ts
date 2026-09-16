@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { ProductSchema } from "@/lib/validations/product";
 import { productMutationRateLimiter } from "@/lib/rate-limit";
+import { deleteCacheByPattern } from "@/lib/cache";
 
 export async function PATCH(
   req: NextRequest,
@@ -79,6 +80,12 @@ export async function PATCH(
       },
     });
 
+    try {
+      await deleteCacheByPattern("products:*");
+    } catch (cacheError) {
+      console.error("Product cache invalidation failed:", cacheError);
+    }
+
     return NextResponse.json({
       success: true,
       product: updatedProduct,
@@ -94,7 +101,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
@@ -143,6 +150,11 @@ export async function DELETE(
       },
     });
 
+    try {
+      await deleteCacheByPattern("products:*");
+    } catch (cacheError) {
+      console.error("Product cache invalidation failed:", cacheError);
+    }
     return NextResponse.json({
       message: "Product deleted successfully",
     });

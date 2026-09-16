@@ -4,6 +4,57 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProductSchema } from "@/lib/validations/product";
 import { productCreateRateLimiter } from "@/lib/rate-limit";
+import { getCache, setCache } from "@/lib/cache";
+
+type CachedProduct = {
+  id: string;
+  title: string;
+  price: number;
+  category: string;
+  createdAt: Date | string;
+  images: {
+    imageUrl: string;
+  }[];
+  seller: {
+    id: string;
+    name: string | null;
+  };
+};
+
+type CachedProducts = {
+  products: CachedProduct[];
+  nextCursor: string | null;
+};
+
+async function addWishlistStatus(data: CachedProducts, userId?: string) {
+  let wishlistedProductIds = new Set<string>();
+
+  if (userId && data.products.length > 0) {
+    const wishlists = await prisma.wishlist.findMany({
+      where: {
+        userId,
+        productId: {
+          in: data.products.map((product) => product.id),
+        },
+      },
+      select: {
+        productId: true,
+      },
+    });
+
+    wishlistedProductIds = new Set(
+      wishlists.map((wishlist) => wishlist.productId),
+    );
+  }
+
+  return {
+    products: data.products.map((product) => ({
+      ...product,
+      isWishlisted: wishlistedProductIds.has(product.id),
+    })),
+    nextCursor: data.nextCursor,
+  };
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,10 +67,31 @@ export async function GET(req: NextRequest) {
     const cursor = searchParams.get("cursor");
     const search = searchParams.get("search") ?? "";
     const category = searchParams.get("category") ?? "";
+
     const requestedLimit = Number(searchParams.get("limit"));
+
     const limit = Number.isFinite(requestedLimit)
       ? Math.max(1, Math.min(requestedLimit, 50))
       : 12;
+
+    const cacheKey = `products:${search}:${category}:${cursor ?? "none"}:${limit}`;
+
+    const cachedProducts = await getCache<CachedProducts>(cacheKey);
+
+    if (cachedProducts) {
+      const responseData = await addWishlistStatus(
+        cachedProducts,
+        session?.user?.id,
+      );
+
+      return NextResponse.json(responseData, {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      });
+      
+    }
+
     const products = await prisma.product.findMany({
       take: limit + 1,
 
@@ -84,17 +156,6 @@ export async function GET(req: NextRequest) {
             name: true,
           },
         },
-
-        ...(session?.user?.id && {
-          wishlists: {
-            where: {
-              userId: session.user.id,
-            },
-            select: {
-              id: true,
-            },
-          },
-        }),
       },
     });
 
@@ -105,28 +166,20 @@ export async function GET(req: NextRequest) {
       nextCursor = nextItem!.id;
     }
 
-    const formattedProducts = products.map((product) => ({
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      category: product.category,
-      createdAt: product.createdAt,
-      images: product.images,
-      seller: product.seller,
-      isWishlisted: "wishlists" in product && product.wishlists.length > 0,
-    }));
+    const cacheData: CachedProducts = {
+      products,
+      nextCursor,
+    };
 
-    return NextResponse.json(
-      {
-        products: formattedProducts,
-        nextCursor,
+    await setCache(cacheKey, cacheData, 60);
+
+    const responseData = await addWishlistStatus(cacheData, session?.user?.id);
+
+    return NextResponse.json(responseData, {
+      headers: {
+        "Cache-Control": "no-store",
       },
-      {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      },
-    );
+    });
   } catch (error) {
     console.error("Get Products Error:", error);
 
