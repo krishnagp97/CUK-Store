@@ -9,19 +9,19 @@ export const messageRateLimiter = new Ratelimit({
 
 export const productCreateRateLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(5, "10 m"),
+  limiter: Ratelimit.slidingWindow(10, "10 m"),
   analytics: true,
 });
 
 export const uploadRateLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(15, "10 m"),
+  limiter: Ratelimit.slidingWindow(30, "10 m"),
   analytics: true,
 });
 
 export const deleteRequestRateLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(3, "1 h"),
+  limiter: Ratelimit.slidingWindow(10, "1 h"),
   analytics: true,
 });
 
@@ -51,7 +51,7 @@ export const messageReadRateLimiter = new Ratelimit({
 
 export const conversationRateLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(20, "10 m"),
+  limiter: Ratelimit.slidingWindow(30, "10 m"),
   analytics: true,
 });
 

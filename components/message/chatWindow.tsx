@@ -187,14 +187,16 @@ export default function ChatWindow({
         );
 
         if (unreadIndex !== -1) {
-          setUnreadDividerIndex(unreadIndex);
-          setShowUnreadDividerState(true);
-
-          setTimeout(() => {
-            setShowUnreadDividerState(false);
-            setUnreadDividerIndex(null);
-          }, 3000);
+          return;
         }
+
+        setUnreadDividerIndex(unreadIndex);
+        setShowUnreadDividerState(true);
+
+        setTimeout(() => {
+          setShowUnreadDividerState(false);
+          setUnreadDividerIndex(null);
+        }, 3000);
 
         const res = await fetch("/api/message/read", {
           method: "PATCH",
@@ -312,6 +314,13 @@ export default function ChatWindow({
     const listener = (message: any) => {
       const { conversationId: eventConversationId, readAt } =
         message.data as ReadPayload;
+
+      console.log("MESSAGE-READ EVENT RECEIVED:", {
+        currentUserId,
+        eventConversationId,
+        readAt,
+        data: message.data,
+      });
 
       setMessages((prev) =>
         prev.map((msg) =>

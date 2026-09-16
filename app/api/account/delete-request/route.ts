@@ -24,6 +24,28 @@ export async function POST() {
     );
   }
 
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+    },
+    select: {
+      deleteRequested: true,
+    },
+  });
+
+  if (!user) {
+    return NextResponse.json({ message: "User not found." }, { status: 404 });
+  }
+
+  if (user.deleteRequested) {
+    return NextResponse.json(
+      {
+        message: "Account deletion is already scheduled.",
+      },
+      { status: 409 },
+    );
+  }
+
   const deleteDate = new Date();
   deleteDate.setDate(deleteDate.getDate() + 30);
 

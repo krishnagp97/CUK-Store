@@ -28,7 +28,7 @@ export async function PATCH(req: Request) {
 
     const readAt = new Date();
 
-    await prisma.message.updateMany({
+    const result = await prisma.message.updateMany({
       where: {
         conversationId,
         senderId: {
@@ -41,13 +41,15 @@ export async function PATCH(req: Request) {
       },
     });
 
-    const channel = ably.channels.get(`conversation:${conversationId}`);
+    if (result.count > 0) {
+      const channel = ably.channels.get(`conversation:${conversationId}`);
 
-    await channel.publish("message-read", {
-      conversationId,
-      userId: session.user.id,
-      readAt,
-    });
+      await channel.publish("message-read", {
+        conversationId,
+        userId: session.user.id,
+        readAt,
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

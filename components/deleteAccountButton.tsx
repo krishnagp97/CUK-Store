@@ -15,7 +15,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 
-export default function DeleteAccountButton() {
+interface DeleteAccountButtonProps {
+  disabled?: boolean;
+}
+export default function DeleteAccountButton({
+  disabled = false,
+}: DeleteAccountButtonProps) {
   const router = useRouter();
   const handleDeleteRequest = async () => {
     try {
@@ -40,7 +45,9 @@ export default function DeleteAccountButton() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive">Delete Account</Button>
+        <Button variant="destructive" disabled={disabled}>
+          Delete Account
+        </Button>
       </AlertDialogTrigger>
 
       <AlertDialogContent>
