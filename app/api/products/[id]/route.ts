@@ -82,6 +82,7 @@ export async function PATCH(
 
     try {
       await deleteCacheByPattern("products:*");
+      await deleteCacheByPattern("product:*");
     } catch (cacheError) {
       console.error("Product cache invalidation failed:", cacheError);
     }
@@ -152,6 +153,7 @@ export async function DELETE(
 
     try {
       await deleteCacheByPattern("products:*");
+      await deleteCacheByPattern("product:*");
     } catch (cacheError) {
       console.error("Product cache invalidation failed:", cacheError);
     }

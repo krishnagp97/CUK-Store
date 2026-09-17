@@ -1,9 +1,10 @@
-
 import Image from "next/image";
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
+import { getCache, setCache } from "@/lib/cache";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,47 +15,88 @@ import { User } from "lucide-react";
 import ProductGallery from "@/components/product/productGallery";
 import MessageSellerButton from "@/components/product/messageSellerButton";
 
+type ProductPageCache = {
+  product: Prisma.ProductGetPayload<{
+    include: {
+      images: true;
+      seller: {
+        select: {
+          id: true;
+          name: true;
+        };
+      };
+    };
+  }>;
+  similarProducts: Prisma.ProductGetPayload<{
+    include: {
+      images: {
+        take: 1;
+      };
+    };
+  }>[];
+};
 export default async function ProductPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const cacheKey = `product:${id}`;
+  const cachedData = await getCache<ProductPageCache>(cacheKey);
 
-  const product = await prisma.product.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      images: true,
-      seller: {
-        select: {
-          id: true,
-          name: true,
+  let product: ProductPageCache["product"];
+  let similarProducts: ProductPageCache["similarProducts"];
+
+  if (cachedData) {
+    product = cachedData.product;
+    similarProducts = cachedData.similarProducts;
+  } else {
+    const fetchedProduct = await prisma.product.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        images: true,
+        seller: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!product) {
-    notFound();
+    if (!fetchedProduct) {
+      notFound();
+    }
+
+    product = fetchedProduct;
+
+    similarProducts = await prisma.product.findMany({
+      where: {
+        category: product.category,
+        id: {
+          not: product.id,
+        },
+        status: "AVAILABLE",
+      },
+      include: {
+        images: {
+          take: 1,
+        },
+      },
+      take: 4,
+    });
+
+    await setCache(
+      cacheKey,
+      {
+        product,
+        similarProducts,
+      },
+      300,
+    );
   }
-
-  const similarProducts = await prisma.product.findMany({
-    where: {
-      category: product.category,
-      id: {
-        not: product.id,
-      },
-      status: "AVAILABLE",
-    },
-    include: {
-      images: {
-        take: 1,
-      },
-    },
-    take: 4,
-  });
 
   return (
     <div className="w-full px-3 pb-24 pt-3 sm:px-4 sm:pb-8 sm:pt-6 lg:pt-8">
@@ -105,9 +147,7 @@ export default async function ProductPage({
                   </div>
 
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">
-                      Seller
-                    </p>
+                    <p className="text-xs text-muted-foreground">Seller</p>
 
                     <h3 className="truncate text-sm font-semibold sm:text-base">
                       {product.seller.name ?? "Unknown"}
@@ -144,10 +184,7 @@ export default async function ProductPage({
                   {/* Image */}
                   <div className="relative h-32 overflow-hidden bg-slate-100 sm:h-48 lg:h-52">
                     <Image
-                      src={
-                        item.images[0]?.imageUrl ||
-                        "/placeholder.jpg"
-                      }
+                      src={item.images[0]?.imageUrl || "/placeholder.jpg"}
                       alt={item.title}
                       fill
                       sizes="(max-width:640px) 50vw, (max-width:1024px) 50vw, 25vw"
@@ -162,16 +199,10 @@ export default async function ProductPage({
                     </h3>
 
                     <p className="text-base font-bold text-green-600 sm:text-xl">
-                      ₹
-                      {new Intl.NumberFormat("en-IN").format(
-                        item.price,
-                      )}
+                      ₹{new Intl.NumberFormat("en-IN").format(item.price)}
                     </p>
 
-                    <Link
-                      href={`/products/${item.id}`}
-                      className="block"
-                    >
+                    <Link href={`/products/${item.id}`} className="block">
                       <Button
                         variant="secondary"
                         className="h-8 w-full rounded-full px-2 text-xs sm:h-10 sm:text-sm"
@@ -189,4 +220,3 @@ export default async function ProductPage({
     </div>
   );
 }
-
