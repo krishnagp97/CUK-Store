@@ -1,27 +1,29 @@
 import { test, expect } from "@playwright/test";
+import { ensureTestProduct } from "./helpers/testProduct";
 
-test("Delete listing", async ({ page }) => {
+test("user can delete a listing", async ({ page }) => {
+  await ensureTestProduct(page, "Playwright Delete Test");
+
   await page.goto("/myListings");
 
   const listing = page
-    .locator("h2")
-    .filter({ hasText: "Playwright" })
-    .first()
+    .getByRole("heading", {
+      name: "Playwright Delete Test",
+      exact: true,
+    })
     .locator("../..")
     .locator("..");
 
-  await expect(listing).toBeVisible();
-
-  const title = await listing.locator("h2").innerText();
-
-  page.once("dialog", async dialog => {
-    expect(dialog.type()).toBe("confirm");
+  await page.once("dialog", async (dialog) => {
     await dialog.accept();
   });
 
   await listing.getByRole("button", { name: "Delete" }).click();
 
   await expect(
-    page.getByRole("heading", { name: title, exact: true })
+    page.getByRole("heading", {
+      name: "Playwright Delete Test",
+      exact: true,
+    })
   ).toHaveCount(0);
 });

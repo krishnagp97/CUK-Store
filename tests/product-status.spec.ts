@@ -1,87 +1,46 @@
 import { test, expect } from "@playwright/test";
+import { ensureTestProduct } from "./helpers/testProduct";
 
-test("Sold listing shows Sold status", async ({ page }) => {
-  const productTitle = `Playwright Status Test ${Date.now()}`;
+test("product status changes correctly", async ({ page }) => {
+  const productTitle = "Playwright Sold Test";
 
-  await page.goto("/sell");
+  await ensureTestProduct(page, productTitle);
 
-  await page.locator('input[name="title"]').fill(productTitle);
+  await page.goto("/myListings");
 
-  await page
-    .locator("select")
-    .first()
-    .selectOption({ label: "Electronics" });
+  const listing = page
+    .getByRole("heading", {
+      name: productTitle,
+      exact: true,
+    })
+    .locator("../..")
+    .locator("..");
 
-  await page.locator('input[name="price"]').fill("999");
+  // Mark as sold
+  page.once("dialog", async (dialog) => {
+    expect(dialog.type()).toBe("confirm");
+    expect(dialog.message()).toBe("Mark this product as sold?");
+    await dialog.accept();
+  });
 
-  await page
-    .locator('textarea[name="description"]')
-    .fill("Listing created for Playwright status test.");
-
-  await page
-    .locator('input[type="file"]')
-    .setInputFiles("tests/fixtures/test-product.jpeg");
-
-  await page.getByRole("button", { name: "Publish Product" }).click();
+  await listing.getByRole("button", { name: "Mark as Sold" }).click();
 
   await expect(
-    page.getByText(productTitle, { exact: true })
-  ).toBeVisible({ timeout: 15000 });
+    listing.getByText("Sold", { exact: true }),
+  ).toBeVisible();
 
-  try {
-    await page.goto("/myListings");
+  // Mark as available
+  page.once("dialog", async (dialog) => {
+    expect(dialog.type()).toBe("confirm");
+    expect(dialog.message()).toBe("Mark this product as available?");
+    await dialog.accept();
+  });
 
-    const listing = page
-      .getByRole("heading", { level: 2 })
-      .filter({ hasText: productTitle })
-      .first()
-      .locator("../..")
-      .locator("..");
+  await listing
+    .getByRole("button", { name: "Mark as Available" })
+    .click();
 
-    await expect(listing).toBeVisible();
-
-    // First mark it as sold
-    page.once("dialog", async dialog => {
-      await dialog.accept();
-    });
-
-    await listing
-      .getByRole("button", { name: "Mark as Sold" })
-      .click();
-
-    // Verify sold state
-    await expect(
-      listing.getByText("Sold", { exact: true })
-    ).toBeVisible();
-
-    await expect(
-      listing.getByRole("button", { name: "Mark as Available" })
-    ).toBeVisible();
-  } finally {
-    // Cleanup
-    await page.goto("/myListings");
-
-    const listing = page
-      .getByRole("heading", { level: 2 })
-      .filter({ hasText: productTitle })
-      .first()
-      .locator("../..")
-      .locator("..");
-
-    if (await listing.count()) {
-      page.once("dialog", async dialog => {
-        await dialog.accept();
-      });
-
-      await listing.getByRole("button", { name: "Delete" }).click();
-
-      await expect(
-        page.getByRole("heading", {
-          level: 2,
-          name: productTitle,
-          exact: true,
-        })
-      ).toHaveCount(0);
-    }
-  }
+  await expect(
+    listing.getByText("Available", { exact: true }),
+  ).toBeVisible();
 });

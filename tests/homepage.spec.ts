@@ -21,15 +21,19 @@ test("homepage displays marketplace UI", async ({ page }) => {
     page.getByRole("complementary").getByText("Filters", { exact: true }),
   ).toBeVisible();
 
-  // Categories
-  await expect(page.getByRole("heading", { name: "Categories" })).toBeVisible();
+  // Category
+  await expect(
+    page.getByRole("complementary").getByText("Category", { exact: true }),
+  ).toBeVisible();
 
   // At least one product should be displayed
-  await expect(page.locator('a[href^="/products/"]').first()).toBeVisible();
+  await expect(
+    page.locator('a[href^="/products/"]').first(),
+  ).toBeVisible();
 });
 
-test('user can open a product details page', async ({ page }) => {
-  await page.goto('/');
+test("user can open a product details page", async ({ page }) => {
+  await page.goto("/");
 
   // Find the first product
   const firstProduct = page.locator('a[href^="/products/"]').first();
@@ -37,7 +41,7 @@ test('user can open a product details page', async ({ page }) => {
   await expect(firstProduct).toBeVisible();
 
   // Save its URL
-  const productUrl = await firstProduct.getAttribute('href');
+  const productUrl = await firstProduct.getAttribute("href");
 
   expect(productUrl).toMatch(/^\/products\/.+/);
 

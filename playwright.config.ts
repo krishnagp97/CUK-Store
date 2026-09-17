@@ -17,12 +17,12 @@ export default defineConfig({
   reporter: "html",
 
   use: {
-    baseURL: "https://cuk-store.vercel.app",
+    baseURL: "http://localhost:3000",
 
     trace: "on-first-retry",
 
     extraHTTPHeaders: {
-      Origin: "https://cuk-store.vercel.app",
+      Origin: "http://localhost:3000",
     },
   },
 
