@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ProductSchema } from "@/lib/validations/product";
 import { productCreateRateLimiter } from "@/lib/rate-limit";
 import { getCache, setCache } from "@/lib/cache";
+import { deleteCacheByPattern } from "@/lib/cache";
 
 type CachedProduct = {
   id: string;
@@ -171,7 +172,7 @@ export async function GET(req: NextRequest) {
       nextCursor,
     };
 
-    await setCache(cacheKey, cacheData, 60);
+    await setCache(cacheKey, cacheData, 300);
 
     const responseData = await addWishlistStatus(cacheData, session?.user?.id);
 
@@ -250,7 +251,7 @@ export async function POST(req: NextRequest) {
         images: true,
       },
     });
-
+    await deleteCacheByPattern("products:*");
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
     console.error("Create Product Error:", error);

@@ -66,7 +66,6 @@ export default function HomePageComponent({ search, category }: Props) {
       initialPageParam: null,
 
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-
     });
   const products = useMemo(
     () => data?.pages.flatMap((page) => page.products) ?? [],
@@ -103,24 +102,8 @@ export default function HomePageComponent({ search, category }: Props) {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
           {/* Desktop Sidebar */}
-          <aside className="hidden self-start lg:col-span-3 lg:block">
-            <Card className="rounded-2xl border border-[#E5E5EF] shadow-sm transition-shadow duration-300 hover:shadow-md lg:sticky lg:top-24">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-bold text-[#1A1A2E] sm:text-2xl">
-                  Filters
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="mb-4 text-base font-semibold text-[#1A1A2E] sm:text-lg">
-                    Categories
-                  </h3>
-
-                  <SidebarFilter />
-                </div>
-              </CardContent>
-            </Card>
+          <aside className="hidden lg:col-span-3 lg:block lg:self-start lg:sticky lg:top-24 lg:h-fit">
+            <SidebarFilter />
           </aside>
 
           {/* Products */}
