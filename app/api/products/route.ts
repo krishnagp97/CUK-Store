@@ -88,9 +88,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(responseData, {
         headers: {
           "Cache-Control": "no-store",
+          "X-Product-Cache": "HIT",
         },
       });
-      
     }
 
     const products = await prisma.product.findMany({
@@ -179,6 +179,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(responseData, {
       headers: {
         "Cache-Control": "no-store",
+        "X-Product-Cache": "MISS",
       },
     });
   } catch (error) {
