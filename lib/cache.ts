@@ -1,22 +1,7 @@
 import { redis } from "./redis";
 
 export async function getCache<T>(key: string): Promise<T | null> {
-  const start = performance.now();
-
-  try {
-    const result = await redis.get<T>(key);
-
-    console.log("[CACHE]", {
-      key,
-      status: result ? "HIT" : "MISS",
-      durationMs: Number((performance.now() - start).toFixed(2)),
-    });
-
-    return result;
-  } catch (error) {
-    console.error("[CACHE READ ERROR]", error);
-    throw error;
-  }
+  return redis.get<T>(key);
 }
 
 export async function setCache<T>(
