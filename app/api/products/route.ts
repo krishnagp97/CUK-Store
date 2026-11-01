@@ -76,8 +76,15 @@ export async function GET(req: NextRequest) {
       : 12;
 
     const cacheKey = `products:${search}:${category}:${cursor ?? "none"}:${limit}`;
+    const benchmarkSecret = req.headers.get("x-benchmark-secret");
 
-    const cachedProducts = await getCache<CachedProducts>(cacheKey);
+    const bypassCache =
+      !!process.env.BENCHMARK_SECRET &&
+      benchmarkSecret === process.env.BENCHMARK_SECRET;
+
+    const cachedProducts = bypassCache
+      ? null
+      : await getCache<CachedProducts>(cacheKey);
 
     if (cachedProducts) {
       const responseData = await addWishlistStatus(
@@ -172,14 +179,16 @@ export async function GET(req: NextRequest) {
       nextCursor,
     };
 
-    await setCache(cacheKey, cacheData, 300);
+    if (!bypassCache) {
+      await setCache(cacheKey, cacheData, 300);
+    }
 
     const responseData = await addWishlistStatus(cacheData, session?.user?.id);
 
     return NextResponse.json(responseData, {
       headers: {
         "Cache-Control": "no-store",
-        "X-Product-Cache": "MISS",
+        "X-Product-Cache": bypassCache ? "BYPASS" : "MISS",
       },
     });
   } catch (error) {
