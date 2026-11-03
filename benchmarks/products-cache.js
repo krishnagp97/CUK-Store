@@ -5,7 +5,7 @@ export const options = {
   scenarios: {
     cached_products: {
       executor: "constant-vus",
-      vus: 25,
+      vus: 100,
       duration: "1m",
     },
   },
